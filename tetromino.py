@@ -53,19 +53,18 @@ class Tetromino:
         Rotation is done by cycling through the rotation shapes obtained from
         shapes.py. After a rotation has been performed, a check is done
         ensuring that none of the tetromino's block coordinates are pass the
-        boundaries. If they are, they the rotation is undone.
+        boundaries. If they are, the tetromino is shifted away from the
+        boundary until all blocks are within the boundaries.
         """
         self.shape_type = (self.shape_type + 1)%4
 
         # Iterate through each of the tetromino's block coordinates.
         for point in self.block_coordinates():
             # Check if the block's coordinate is beyond or on the boundaries.
-            if (self.coordinate[1] + point[1]) >= self.right_boundary or \
-               (self.coordinate[1] + point[1]) <= self.left_boundary:
-                self.shape_type = (self.shape_type - 1)%4  # Undo rotation.
-                return
-
-            # TODO fix rotations
+            while (self.coordinate[1] + point[1]) >= self.right_boundary:
+                self.coordinate[1] -= 1
+            while (self.coordinate[1] + point[1]) <= self.left_boundary:
+                self.coordinate[1] += 1
 
     def move_right(self):
         """Move the tetromino to the right. Before rotation is done, ensure that
