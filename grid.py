@@ -22,9 +22,10 @@ class Grid():
 
         self.static_grid = np.copy(self.grid)
         self.current_tetromino = None
+        self.top_out = False
 
     def new_grid(self):
-        # Dump animation
+        self.__init__()
         return
 
     def find_line_clear(self):
@@ -33,7 +34,7 @@ class Grid():
         rows = np.where((grid == np.ones((1, self.width))).all(axis=1))
         return rows[0]
 
-    def clear_line(self):
+    def clear_line_check(self):
         rows = self.find_line_clear()
         if rows.size != 0:
             # Delete the rows that have a line clears.
@@ -49,7 +50,7 @@ class Grid():
         new_position = tetromino.position()
 
         for point in tetromino.block_coordinates():
-            if self.static_grid[new_position[0] + point[0], new_position[1] + point[1]] == 1:
+            if self.grid[new_position[0] + point[0], new_position[1] + point[1]] == 1:
                 return True
 
         return False
@@ -63,8 +64,7 @@ class Grid():
             # Erase image of current tetromino.
             current_position = self.current_tetromino.position()
             for point in self.current_tetromino.block_coordinates():
-                self.grid[current_position[0] + point[0], current_position[1] + point[1]] = \
-                        self.static_grid[current_position[0] + point[0], current_position[1] + point[1]]
+                self.grid[current_position[0] + point[0], current_position[1] + point[1]] = 0
 
         if self.collision(new_teromino):
             self.place_tetromino()
@@ -82,7 +82,7 @@ class Grid():
 
     def place_tetromino(self):
         if self.current_tetromino == None:
-            self.new_grid()
+            self.top_out = True
 
         else:
             position = self.current_tetromino.position()
@@ -91,7 +91,9 @@ class Grid():
                 self.grid[position[0] + point[0], position[1] + point[1]] = 1
 
             self.current_tetromino = None
-            self.static_grid = np.copy(self.grid)
+
+    def top_out_occured(self):
+        return self.top_out
 
 
 

@@ -48,7 +48,9 @@ while True:
         shape.new_shape()
 
     if tetris_board.update_grid(shape):
-        tetris_board.clear_line()
+        if tetris_board.top_out_occured():
+            tetris_board.new_grid()
+        tetris_board.clear_line_check()
         shape.new_shape()
 
     print()
