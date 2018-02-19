@@ -17,10 +17,10 @@ class Grid():
         """
         self.width = grid_width
         self.height = grid_height + 3  # Accommodate for spawning area (3 spaces)
+
         self.grid = np.zeros((self.height, self.width + 6), dtype=int)
         self.grid[self.height-1, :] = np.ones(self.width + 6)
 
-        self.static_grid = np.copy(self.grid)
         self.current_tetromino = None
         self.top_out = False
 
@@ -30,7 +30,7 @@ class Grid():
 
     def find_line_clear(self):
         # Find rows that are filled.
-        grid = self.static_grid[0:self.height-1:, 3:self.width+3]
+        grid = self.grid[0:self.height-1:, 3:self.width+3]
         rows = np.where((grid == np.ones((1, self.width))).all(axis=1))
         return rows[0]
 
@@ -38,12 +38,10 @@ class Grid():
         rows = self.find_line_clear()
         if rows.size != 0:
             # Delete the rows that have a line clears.
-            self.static_grid = np.delete(self.static_grid, rows, axis=0)
             self.grid = np.delete(self.grid, rows, axis=0)
 
             # Pad the top of the grid with rows of 0's.
             npad = ((len(rows), 0), (0, 0))
-            self.static_grid = np.pad(self.static_grid, pad_width=npad, mode='constant')
             self.grid = np.pad(self.grid, pad_width=npad, mode='constant')
 
     def collision(self, tetromino):
@@ -56,10 +54,6 @@ class Grid():
         return False
 
     def update_grid(self, new_teromino):
-        # Update the status of the grid.
-        # Parameters: A tetromino object
-        # Returns: True if the static grid has been updated, else False.
-
         if self.current_tetromino is not None:
             # Erase image of current tetromino.
             current_position = self.current_tetromino.position()
