@@ -1,8 +1,8 @@
 
-import tetromino
-import grid
 import pygame as pg
 import sys, termios, tty, os, time
+import tetromino
+import grid
 
 GRID_HEIGHT = 20
 GRID_WIDTH = 10
