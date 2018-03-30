@@ -49,12 +49,13 @@ class Tetromino:
         from shapes.py
         """
         self.rotation_index = (self.rotation_index + 1)%4
+        indices = np.where(self.tetromino[self.rotation_index] > 0)
 
         # Ensure none of the tetromino's blocks surpass the boundaries.
-        for point in self.block_coordinates():
-            while (point[1]) >= self.right_boundary:
+        for i in range(indices[0].size):
+            while (self.coordinate[1] + indices[1][i]) >= self.right_boundary:
                 self.coordinate[1] -= 1
-            while (point[1]) <= self.left_boundary:
+            while (self.coordinate[1] + indices[1][i]) <= self.left_boundary:
                 self.coordinate[1] += 1
 
     def move_right(self):
@@ -90,8 +91,8 @@ class Tetromino:
 
         Returns
         -------
-        coordinates: list of integer tuples
-            The tuples contain coordinate pairs that specifiy the location of
+        coordinates: list of integer lists
+            The lists contain coordinate pairs that specifiy the location of
             each tetromino's block relative to the grid
         """
         coordinates = []
@@ -99,10 +100,10 @@ class Tetromino:
         # Locate which indices contain a block (1).
         indices = np.where(self.tetromino[self.rotation_index] == 1)
 
-        # Format coordinates into a list of tuples.
+        # Format coordinates into a list of lists.
         for i in range(indices[0].size):
-            coordinates.append((self.coordinate[0] + indices[0][i],
-                                self.coordinate[1] + indices[1][i]))
+            coordinates.append([self.coordinate[0] + indices[0][i],
+                                self.coordinate[1] + indices[1][i]])
 
         return coordinates
 
