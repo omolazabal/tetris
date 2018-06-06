@@ -5,7 +5,10 @@ from .core import tetromino, grid
 
 
 class Game():
+    """Class to run Tetris game."""
+
     def __init__(self):
+        """Set default game settings."""
         self.screen_width = 640
         self.screen_height = 480
         self.grid_height = 20
@@ -40,14 +43,19 @@ class Game():
         self.key_repeat_interval = interval
 
     def print_grid(self):
+        """Print grid matrix."""
         print('\n', self.tetromino.shape(),
               '\n', self.grid.grid[3:, 3:self.grid_width+3])
 
     def play(self):
+        """Start the game."""
+
+        # Initialize pygame.
         pygame.init()
         pygame.key.set_repeat(self.key_repeat_delay, self.key_repeat_interval)
         pygame.display.set_mode((self.screen_width, self.screen_height))
 
+        # Initialize grid and tetromino.
         self.grid = grid.Grid(self.grid_width, self.grid_height)
         self.tetromino = tetromino.Tetromino(self.grid_width)
         self._start_game()
@@ -57,9 +65,9 @@ class Game():
         exit(0)
 
     def _start_game(self):
+        """Begin game and check for keyboard inputs."""
         while True:
             keys_pressed = pygame.key.get_pressed()
-
             for event in pygame.event.get():
                 if event.type == QUIT or keys_pressed[K_q]:
                     self.quit()
@@ -73,9 +81,8 @@ class Game():
                     self.tetromino.rotate()
                 elif keys_pressed[K_n]:
                     self.tetromino.new_shape()
-
                 if self.grid.update_grid(self.tetromino):
                     self.tetromino.new_shape()
-
                 self.print_grid()
+
         pygame.quit()
