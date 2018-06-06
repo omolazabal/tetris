@@ -1,21 +1,17 @@
 
-import numpy as np
 import random
-from shapes import SHAPES
+import numpy as np
+from ..utils.shapes import SHAPES
 
 
 TETROMINO_NAMES = list(SHAPES.keys())
 
 
 class Tetromino:
-    """Class for the Tetrominos in Tetris.
-
-    Utilizes the matrix shapes obtained from shapes.py. Coordinates used
-    throughout the class are based on matricies (rows, columns).
-    """
+    """Class for the Tetrominos in Tetris."""
 
     def __init__(self, grid_width=10):
-        """Create a random tetromino and set its coordinates and left and right
+        """Create a random tetromino, set its position, set its left and right
         boundaries.
 
         Parameters
@@ -26,10 +22,11 @@ class Tetromino:
         self.tetromino = SHAPES[TETROMINO_NAMES[random.randint(0, 6)]]
         self.rotation_index = 0
 
-        # Calculate coordinate and left and right boundaries noting that the
+        # Calculate position and left and right boundaries.
         # Tetris board is padded with three extra columns on both sides of
         # the grid.
-        self.coordinate = [0, 3 + int(grid_width/2 - 2)]  # Center of grid.
+        self.row = 0
+        self.col = 3+ int(grid_width/2 - 2)
         self.left_boundary = 2
         self.right_boundary = grid_width + 3
         self.grid_width = grid_width
@@ -53,38 +50,38 @@ class Tetromino:
 
         # Ensure none of the tetromino's blocks surpass the boundaries.
         for i in range(indices[0].size):
-            while (self.coordinate[1] + indices[1][i]) >= self.right_boundary:
-                self.coordinate[1] -= 1
-            while (self.coordinate[1] + indices[1][i]) <= self.left_boundary:
-                self.coordinate[1] += 1
+            while (self.col + indices[1][i]) >= self.right_boundary:
+                self.col -= 1
+            while (self.col + indices[1][i]) <= self.left_boundary:
+                self.col += 1
 
     def move_right(self):
         """Move the tetromino to the right. Before rotation is done, ensure that
-        the coordinate is valid.
+        the position is valid.
         """
         for point in self.block_coordinates():
             if (point[1]) >= self.right_boundary - 1:
                 return
 
-        self.coordinate[1] += 1
+        self.col += 1
 
     def move_left(self):
         """Move the tetromino to the left. Before rotation is done, ensure that
-        the coordinate is valid.
+        the position is valid.
         """
         for point in self.block_coordinates():
             if (point[1]) <= self.left_boundary + 1:
                 return
 
-        self.coordinate[1] -= 1
+        self.col -= 1
 
     def move_down(self):
         """Move the tetromino downwards."""
-        self.coordinate[0] += 1
+        self.row += 1
 
     def position(self):
-        """Return the coordinates of the tetromino as tuple."""
-        return tuple(self.coordinate)
+        """Return the position of the tetromino as tuple."""
+        return (row, col)
 
     def block_coordinates(self):
         """Return the coordinates for every block in the tetromino matrix.
@@ -92,18 +89,17 @@ class Tetromino:
         Returns
         -------
         coordinates: list of integer lists
-            The lists contain coordinate pairs that specifiy the location of
-            each tetromino's block relative to the grid
+            The lists contain coordinate pairs that specifiy the row and column
+            each tetromino's block relative to the grid.
         """
         coordinates = []
 
         # Locate which indices contain a block (1).
         indices = np.where(self.tetromino[self.rotation_index] == 1)
 
-        # Format coordinates into a list of lists.
+        # Format coordinates into a list of tuples.
         for i in range(indices[0].size):
-            coordinates.append([self.coordinate[0] + indices[0][i],
-                                self.coordinate[1] + indices[1][i]])
+            coordinates.append((self.row + indices[0][i],
+                                self.col + indices[1][i]))
 
         return coordinates
-
