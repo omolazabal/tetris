@@ -8,4 +8,4 @@ Created using:
 - Numpy v1.13.3
 - Pygame v1.9.3
 
-Clone and run `python3 tetris.py` in your shell to try what I have so far.
+Clone and run `python3 game.py` in your shell to try what I have so far.
