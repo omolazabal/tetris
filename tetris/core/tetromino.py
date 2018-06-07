@@ -4,9 +4,6 @@ import numpy as np
 from ..utils.shapes import SHAPES
 
 
-TETROMINO_NAMES = list(SHAPES.keys())
-
-
 class Tetromino:
     """Class for the Tetrominos in Tetris."""
 
@@ -19,14 +16,14 @@ class Tetromino:
         grid_width: integer (default=10)
             Specifies the width of the Tetris grid being used.
         """
-        self.tetromino = SHAPES[TETROMINO_NAMES[random.randint(0, 6)]]
+        self.tetromino = SHAPES[list(SHAPES.keys())[random.randint(0, 6)]]
         self.rotation_index = 0
 
         # Calculate position and left and right boundaries.
         # Tetris board is padded with three extra columns on both sides of
         # the grid.
         self.row = 0
-        self.col = 3+ int(grid_width/2 - 2)
+        self.col = 3 + int(grid_width/2 - 2)
         self.left_boundary = 2
         self.right_boundary = grid_width + 3
         self.grid_width = grid_width
@@ -35,7 +32,7 @@ class Tetromino:
         """Randomly generate new shape."""
         self.__init__(self.grid_width)
 
-    def shape(self):
+    def get_tetromino(self):
         """Return numpy array of tetromino matrix"""
         return self.tetromino[self.rotation_index]
 
@@ -46,9 +43,10 @@ class Tetromino:
         from shapes.py
         """
         self.rotation_index = (self.rotation_index + 1)%4
-        indices = np.where(self.tetromino[self.rotation_index] > 0)
+        indices = np.where(self.tetromino[self.rotation_index] == 0)
 
-        # Ensure none of the tetromino's blocks surpass the boundaries.
+        # Ensure none of the tetromino's blocks surpass the boundaries when
+        # rotating.
         for i in range(indices[0].size):
             while (self.col + indices[1][i]) >= self.right_boundary:
                 self.col -= 1
@@ -75,13 +73,17 @@ class Tetromino:
 
         self.col -= 1
 
-    def move_down(self):
+    def up(self):
+        """Move the tetromino upwards."""
+        self.row -= 1
+
+    def drop(self):
         """Move the tetromino downwards."""
         self.row += 1
 
     def position(self):
         """Return the position of the tetromino as tuple."""
-        return (row, col)
+        return (self.row, self.col)
 
     def block_coordinates(self):
         """Return the coordinates for every block in the tetromino matrix.
