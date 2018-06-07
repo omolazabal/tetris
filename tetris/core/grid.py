@@ -24,11 +24,22 @@ class Grid():
         self.grid = np.zeros((self.height, self.width + 6), dtype=int)
         self.grid[self.height-1, :] = np.ones(self.width + 6)
         self.current_tetromino = None
+        self.ghost = None
         self.top_out = False
+        self.fill_height = np.zeros((1, self.width + 6), dtype=int)
+        self.fill_height.reshape(1, self.width+6, 1)
 
     def new_grid(self):
         """Clear the grid."""
         self.__init__()
+
+    def get_grid(self):
+        """Return cropped version of grid."""
+        return self.grid[3:, 3:self.width+3]
+
+    def get_height(self):
+        """Return height list of grid."""
+        return self.fill_height[:, 3:self.width + 3]
 
     def _find_line_clear(self):
         """Locate the rows that have a line clear.
@@ -51,6 +62,7 @@ class Grid():
         if filled_rows.size != 0:
             # Delete the rows that have a line clears.
             self.grid = np.delete(self.grid, filled_rows, axis=0)
+            self.fill_height -= filled_rows.size
 
             # Pad the top of the grid with rows of 0's.
             npad = ((len(filled_rows), 0), (0, 0))
@@ -70,8 +82,10 @@ class Grid():
 
         # Erase image of current tetromino (if it exists).
         if self.current_tetromino is not None:
-            for point in self.current_tetromino.block_coordinates():
-                self.grid[point[0], point[1]] = 0
+            for p, gp in zip(self.current_tetromino.block_coordinates(),
+                             self.ghost.block_coordinates()):
+                self.grid[gp[0], gp[1]] = 0
+                self.grid[p[0], p[1]] = 0
 
         # If the new tetromino has a position that is a collision, place it.
         if self.collision(new_tetromino):
@@ -81,9 +95,17 @@ class Grid():
                 self.new_grid()
             return True
 
+        # Find ghost for new tetromino.
+        self.ghost = copy.deepcopy(new_tetromino)
+        while not self.collision(self.ghost):
+            self.ghost.drop()
+        self.ghost.up()
+
         # Write the new tetromino with its new position onto the grid.
-        for point in new_tetromino.block_coordinates():
-            self.grid[point[0], point[1]] = 1
+        for p, gp in zip(new_tetromino.block_coordinates(),
+                         self.ghost.block_coordinates()):
+            self.grid[gp[0], gp[1]] = 2
+            self.grid[p[0], p[1]] = 1
 
         # Save the new tetromino as the current one.
         self.current_tetromino = copy.deepcopy(new_tetromino)
@@ -99,7 +121,9 @@ class Grid():
         if self.current_tetromino == None:
             self.top_out = True
         else:
-            # Integrate tetromino into grid
+            # Integrate tetromino into grid & update heights.
             for point in self.current_tetromino.block_coordinates():
                 self.grid[point[0], point[1]] = 1
+                self.fill_height[0,point[1]] = max(self.fill_height[0,point[1]],
+                                                   self.height-point[0])
             self.current_tetromino = None
