@@ -20,9 +20,9 @@ class Grid():
 
         """
         self.width = grid_width
-        self.height = grid_height + 3  # Accommodate for spawning area.
+        self.height = grid_height + 4  # Accommodate for spawning area & base.
         self.grid = np.zeros((self.height, self.width + 6), dtype=int)
-        self.grid[self.height-1, :] = np.ones(self.width + 6)
+        self.grid[self.height-1, :] = np.ones(self.width + 6)*9
         self.current_tetromino = None
         self.ghost = None
         self.top_out = False
@@ -68,10 +68,17 @@ class Grid():
             npad = ((len(filled_rows), 0), (0, 0))
             self.grid = np.pad(self.grid, pad_width=npad, mode='constant')
 
+            # Adjust heights if needed - special case where the line clear is at
+            # the top and there are holes directly beneath the line clear.
+            for i in range(3, self.width+3):
+                if self.height - max(filled_rows) - 2 == self.fill_height[0, i]:
+                    while self.grid[self.height - self.fill_height[0, i] - 1, i] == 0:
+                        self.fill_height[0, i] -= 1
+
     def collision(self, tetromino):
         """Check to see if tetromino has collided with a placed tetromino."""
-        for point in tetromino.block_coordinates():
-            if self.grid[point[0], point[1]] == 1:
+        for p in tetromino.block_coordinates():
+            if self.grid[p[0], p[1]] == 1 or self.grid[p[0] ,p[1]] == 9:
                 return True
 
         return False
@@ -124,6 +131,6 @@ class Grid():
             # Integrate tetromino into grid & update heights.
             for point in self.current_tetromino.block_coordinates():
                 self.grid[point[0], point[1]] = 1
-                self.fill_height[0,point[1]] = max(self.fill_height[0,point[1]],
-                                                   self.height-point[0])
+                self.fill_height[0, point[1]] = max(
+                        self.fill_height[0, point[1]], self.height-point[0] - 1)
             self.current_tetromino = None
