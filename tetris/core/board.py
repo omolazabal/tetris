@@ -28,7 +28,7 @@ class Board():
         self.top_out = False
 
         self.current_tetromino = None
-        self.ghost = None
+        self.shadow = None
 
     def __str__(self):
         """Return cropped version of board."""
@@ -91,7 +91,7 @@ class Board():
         # Erase image of current tetromino (if it exists).
         if self.current_tetromino is not None:
             for p, gp in zip(self.current_tetromino.block_coordinates(),
-                             self.ghost.block_coordinates()):
+                             self.shadow.block_coordinates()):
                 self.board[gp[0], gp[1]] = 0
                 self.board[p[0], p[1]] = 0
 
@@ -103,15 +103,15 @@ class Board():
                 self.new_board()
             return True
 
-        # Find ghost for new tetromino.
-        self.ghost = copy.deepcopy(new_tetromino)
-        while not self.collision(self.ghost):
-            self.ghost.soft_drop()
-        self.ghost.up()
+        # Find shadow for new tetromino.
+        self.shadow = copy.deepcopy(new_tetromino)
+        while not self.collision(self.shadow):
+            self.shadow.soft_drop()
+        self.shadow.up()
 
         # Write the new tetromino with its new position onto the board.
         for p, gp in zip(new_tetromino.block_coordinates(),
-                         self.ghost.block_coordinates()):
+                         self.shadow.block_coordinates()):
             self.board[gp[0], gp[1]] = 2
             self.board[p[0], p[1]] = 1
 
