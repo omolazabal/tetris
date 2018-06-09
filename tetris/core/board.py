@@ -22,11 +22,13 @@ class Board():
         self.height = board_height + 4  # Accommodate for spawning area & base.
         self.board = np.zeros((self.height, self.width + 6), dtype=int)
         self.board[self.height-1, :] = np.ones(self.width + 6)*9
-        self.current_tetromino = None
-        self.ghost = None
-        self.top_out = False
+
         self.fill_height = np.zeros((1, self.width + 6), dtype=int)
         self.fill_height.reshape(1, self.width+6, 1)
+        self.top_out = False
+
+        self.current_tetromino = None
+        self.ghost = None
 
     def __str__(self):
         """Return cropped version of board."""
