@@ -7,34 +7,34 @@ from ..utils.shapes import SHAPES
 class Tetromino:
     """Class for the Tetrominos in Tetris."""
 
-    def __init__(self, grid_width=10):
+    def __init__(self, board_width=10):
         """Create a random tetromino, set its position, set its left and right
         boundaries.
 
         Parameters
         ----------
-        grid_width: integer (default=10)
-            Specifies the width of the Tetris grid being used.
+        board_width: integer (default=10)
+            Specifies the width of the Tetris board being used.
         """
         self.tetromino = SHAPES[list(SHAPES.keys())[random.randint(0, 6)]]
         self.rotation_index = 0
 
         # Calculate position and left and right boundaries.
         # Tetris board is padded with three extra columns on both sides of
-        # the grid.
+        # the board.
         self.row = 0
-        self.col = 3 + int(grid_width/2 - 2)
+        self.col = 3 + int(board_width/2 - 2)
         self.left_boundary = 2
-        self.right_boundary = grid_width + 3
-        self.grid_width = grid_width
+        self.right_boundary = board_width + 3
+        self.board_width = board_width
+
+    def __str__(self):
+        """Return numpy array of tetromino matrix"""
+        return str(self.tetromino[self.rotation_index])
 
     def new_shape(self):
         """Randomly generate new shape."""
-        self.__init__(self.grid_width)
-
-    def get_tetromino(self):
-        """Return numpy array of tetromino matrix"""
-        return self.tetromino[self.rotation_index]
+        self.__init__(self.board_width)
 
     def rotate(self):
         """Rotate the tetromino shape.
@@ -77,9 +77,12 @@ class Tetromino:
         """Move the tetromino upwards."""
         self.row -= 1
 
-    def drop(self):
+    def soft_drop(self):
         """Move the tetromino downwards."""
         self.row += 1
+
+    def hard_drop(self):
+        pass
 
     def position(self):
         """Return the position of the tetromino as tuple."""
@@ -92,7 +95,7 @@ class Tetromino:
         -------
         coordinates: list of integer lists
             The lists contain coordinate pairs that specifiy the row and column
-            each tetromino's block relative to the grid.
+            each tetromino's block relative to the board.
         """
         coordinates = []
 

@@ -1,7 +1,7 @@
 
 import pygame
 from pygame.locals import *
-from .core import tetromino, grid
+from .core import tetromino, board
 
 
 class Game():
@@ -11,15 +11,23 @@ class Game():
         """Set default game settings."""
         self.screen_width = 468
         self.screen_height = 60
-        self.grid_height = 20
-        self.grid_width = 10
+        self.board_height = 20
+        self.board_width = 10
         self.key_repeat_delay = 150
         self.key_repeat_interval = 30
         self.speed = 1000
 
-    def set_grid_dim(self, dim):
-        self.grid_width = dim[0]
-        self.grid_height = dim[1]
+        self.board = None
+        self.tetromino = None
+
+    def debug_print(self):
+        print(self.tetromino, '\n\n',
+              self.board, '\n\n',
+              self.board.get_height())
+
+    def set_board_dim(self, dim):
+        self.board_width = dim[0]
+        self.board_height = dim[1]
 
     def set_screen_dim(self, dim):
         self.screen_width = dim[0]
@@ -34,15 +42,6 @@ class Game():
     def set_speed(self, speed):
         self.speed = speed
 
-    def print_shape(self):
-        print(self.tetromino.get_tetromino())
-
-    def print_height(self):
-        print(self.grid.get_height())
-
-    def print_grid(self):
-        print(self.grid.get_grid())
-
     def play(self):
         """Start the game."""
         pygame.init()
@@ -56,8 +55,8 @@ class Game():
         self.clock = pygame.time.Clock()
 
         # Create Tetris objects
-        self.grid = grid.Grid(self.grid_width, self.grid_height)
-        self.tetromino = tetromino.Tetromino(self.grid_width)
+        self.board = board.Board(self.board_width, self.board_height)
+        self.tetromino = tetromino.Tetromino(self.board_width)
 
         self._start_game()
 
@@ -69,7 +68,7 @@ class Game():
         """Begin game and check for keyboard inputs."""
         fast = False
         while True:
-            self.clock.tick(60)
+            self.clock.tick(30)
             keys_pressed = pygame.key.get_pressed()
 
             for event in pygame.event.get():
@@ -77,10 +76,10 @@ class Game():
                     self.quit()
 
                 elif event.type == self.MOVE_DOWN:
-                    self.tetromino.drop()
+                    self.tetromino.soft_drop()
 
                 elif keys_pressed[K_DOWN]:
-                    self.tetromino.drop()
+                    self.tetromino.soft_drop()
                     pygame.time.set_timer(self.MOVE_DOWN, self.speed)
 
                 elif keys_pressed[K_LEFT]:
@@ -95,11 +94,9 @@ class Game():
                 elif keys_pressed[K_n]:
                     self.tetromino.new_shape()
 
-                if self.grid.update_grid(self.tetromino):
+                if self.board.update_board(self.tetromino):
                     self.tetromino.new_shape()
 
-                self.print_shape()
-                self.print_grid()
-                self.print_height()
+            self.debug_print()
 
         pygame.quit()
