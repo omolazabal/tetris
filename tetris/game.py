@@ -79,7 +79,10 @@ class Game:
                     self.tetromino.move_right()
 
                 elif keys_pressed[K_UP]:
-                    self.tetromino.rotate()
+                    self.tetromino.rotate_right()
+
+                elif keys_pressed[K_z]:
+                    self.tetromino.rotate_left()
 
                 elif keys_pressed[K_SPACE]:
                     self.tetromino.hard_drop()

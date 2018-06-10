@@ -34,15 +34,34 @@ class Tetromino(Board):
 
     def new_shape(self):
         """Randomly generate new shape."""
-        self.__init__()
+        self.tetromino = SHAPES[list(SHAPES.keys())[random.randint(0, 6)]]
+        self.rotation_index = 0
+        self.row = 0
+        self.col = int(self.width/2) - 2
 
-    def rotate(self):
-        """Rotate the tetromino shape.
+    def rotate_right(self):
+        """Rotate the tetromino shape right.
 
         Rotation is done by cycling through the rotation_index shapes obtained
         from shapes.py
         """
         self.rotation_index = (self.rotation_index + 1)%4
+        p = self.block_coordinates()
+
+        # Ensure none of the tetromino's blocks surpass the boundaries when
+        # rotating.
+        if np.max(p[1]) >= self.right_boundary:
+            self.col -= np.max(p[1]) - self.right_boundary
+        if np.min(p[1]) <= self.left_boundary:
+            self.col += self.left_boundary - np.min(p[1])
+
+    def rotate_left(self):
+        """Rotate the tetromino shape left.
+
+        Rotation is done by cycling through the rotation_index shapes obtained
+        from shapes.py
+        """
+        self.rotation_index = (self.rotation_index - 1)%4
         p = self.block_coordinates()
 
         # Ensure none of the tetromino's blocks surpass the boundaries when

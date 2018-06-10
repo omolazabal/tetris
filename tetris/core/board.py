@@ -18,7 +18,6 @@ class Board:
         self.board[self.height-1, :] = np.ones(self.width)*9
 
         self.top_out = False
-
         self.current_tetromino = None
         self.shadow = None
 
