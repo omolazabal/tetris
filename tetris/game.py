@@ -19,6 +19,7 @@ class Game:
         self.start_time = time.time()
 
     def _debug_print(self):
+        """Print Tetris pieces and relevant information to console."""
         os.system('cls' if os.name == 'nt' else 'clear')
 
         print('\nPosition')
@@ -122,6 +123,7 @@ class Game:
         pygame.quit()
 
     def _pause(self):
+        """Pause gameplay."""
         self.pause = True
         while self.pause:
             self.clock.tick(self.settings.display.fps)
@@ -139,5 +141,6 @@ class Game:
                 self._debug_print()
 
     def _quit(self):
+        """Quit the program."""
         pygame.quit()
         exit(0)

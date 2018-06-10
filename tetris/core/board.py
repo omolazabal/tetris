@@ -23,6 +23,7 @@ class Board:
         self.shadow = None
 
     def reset(self):
+        """Reset the board."""
         self.__init__()
 
     def __str__(self):

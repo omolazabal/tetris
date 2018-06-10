@@ -24,15 +24,14 @@ class Tetromino(Board):
         self.held_tet = None
         self.holding = False
 
-        # Calculate position and left and right boundaries.
-        # Tetris board is padded with three extra columns on both sides of
-        # the board.
+        # Accomodate for padding of board and tetromino pieces.
         self.row = 0
         self.col = int(self.width/2) - 2
         self.left_boundary = 3
         self.right_boundary = self.width - 4
 
     def reset(self):
+        """Reset the tetromino."""
         self.__init__()
 
     def current_tetromino(self):
@@ -50,11 +49,13 @@ class Tetromino(Board):
         self.col = int(self.width/2) - 2
 
     def held_tetromino(self):
+        """Return the tetromino that is being held."""
         if self.held_tet == None:
             return np.zeros((4, 4), dtype=int)
         return self.held_tet[0]
 
     def hold(self):
+        """Hold the tetromino."""
         if not self.holding:
             if self.held_tet == None:
                 self.held_tet = copy.deepcopy(self.tetromino)
@@ -127,6 +128,7 @@ class Tetromino(Board):
         self.row += 1
 
     def hard_drop(self):
+        """Instantly drop the tetromino to the bottom of the board."""
         p = self.block_coordinates()
         self.row += np.min((self.height - p[0]) - self.fill_height[0, p[1]]) - 2
 
