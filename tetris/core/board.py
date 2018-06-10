@@ -18,13 +18,13 @@ class Board():
         board_height: integer (default=20)
             Height of the Tetris board.
         """
-        self.width = board_width
+        self.width = board_width + 6    # Accomodate for sides
         self.height = board_height + 4  # Accommodate for spawning area & base.
-        self.board = np.zeros((self.height, self.width + 6), dtype=int)
-        self.board[self.height-1, :] = np.ones(self.width + 6)*9
+        self.board = np.zeros((self.height, self.width), dtype=int)
+        self.board[self.height-1, :] = np.ones(self.width)*9
 
-        self.fill_height = np.zeros((1, self.width + 6), dtype=int)
-        self.fill_height.reshape(1, self.width+6, 1)
+        self.fill_height = np.zeros((1, self.width), dtype=int)
+        self.fill_height.reshape(1, self.width, 1)
         self.top_out = False
 
         self.current_tetromino = None
@@ -32,7 +32,7 @@ class Board():
 
     def __str__(self):
         """Return cropped version of board."""
-        return str(self.board[3:, 3:self.width+3])
+        return str(self.board[3:, 3:self.width-3])
 
     def new_board(self):
         """Clear the board."""
@@ -40,7 +40,7 @@ class Board():
 
     def get_height(self):
         """Return height list of board."""
-        return self.fill_height[:, 3:self.width + 3]
+        return self.fill_height[:, 3:self.width-3]
 
     def _find_line_clear(self):
         """Locate the rows that have a line clear.
@@ -50,8 +50,8 @@ class Board():
         filled_rows: numpy array of integers
             Contains the rows that have a line clear.
         """
-        board = self.board[0:self.height-1:, 3:self.width+3]
-        rows = np.where((board == np.ones((1, self.width))).all(axis=1))
+        board = self.board[0:self.height-1:, 3:self.width-3]
+        rows = np.where((board == np.ones((1, self.width-6))).all(axis=1))
         filled_rows = rows[0]
         return filled_rows
 
@@ -71,16 +71,16 @@ class Board():
 
             # Adjust heights if needed - special case where the line clear is at
             # the top and there are holes directly beneath the line clear.
-            for i in range(3, self.width+3):
+            for i in range(3, self.width-3):
                 if self.height - max(filled_rows) - 2 == self.fill_height[0, i]:
                     while self.board[self.height - self.fill_height[0, i] - 1, i] == 0:
                         self.fill_height[0, i] -= 1
 
     def collision(self, tetromino):
         """Check to see if tetromino has collided with a placed tetromino."""
-        for p in tetromino.block_coordinates():
-            if self.board[p[0], p[1]] == 1 or self.board[p[0] ,p[1]] == 9:
-                return True
+        p = tetromino.block_coordinates()
+        if self.board[p[0], p[1]].any() == 1 or self.board[p[0], p[1]].any() == 9:
+            return True
 
         return False
 
@@ -90,10 +90,10 @@ class Board():
 
         # Erase image of current tetromino (if it exists).
         if self.current_tetromino is not None:
-            for p, gp in zip(self.current_tetromino.block_coordinates(),
-                             self.shadow.block_coordinates()):
-                self.board[gp[0], gp[1]] = 0
-                self.board[p[0], p[1]] = 0
+            p = self.current_tetromino.block_coordinates()
+            sp = self.shadow.block_coordinates()
+            self.board[sp[0], sp[1]] = 0
+            self.board[p[0], p[1]] = 0
 
         # If the new tetromino has a position that is a collision, place it.
         if self.collision(new_tetromino):
@@ -110,10 +110,10 @@ class Board():
         self.shadow.up()
 
         # Write the new tetromino with its new position onto the board.
-        for p, gp in zip(new_tetromino.block_coordinates(),
-                         self.shadow.block_coordinates()):
-            self.board[gp[0], gp[1]] = 2
-            self.board[p[0], p[1]] = 1
+        p = new_tetromino.block_coordinates()
+        sp = self.shadow.block_coordinates()
+        self.board[sp[0], sp[1]] = 2
+        self.board[p[0], p[1]] = 1
 
         # Save the new tetromino as the current one.
         self.current_tetromino = copy.deepcopy(new_tetromino)
@@ -130,8 +130,13 @@ class Board():
             self.top_out = True
         else:
             # Integrate tetromino into board & update heights.
-            for point in self.current_tetromino.block_coordinates():
-                self.board[point[0], point[1]] = 1
-                self.fill_height[0, point[1]] = max(
-                        self.fill_height[0, point[1]], self.height-point[0] - 1)
+
+            p = self.current_tetromino.block_coordinates()
+            self.board[p[0], p[1]] = 1
+
+            for i in np.unique(p[1]):
+                self.fill_height[0, i] = np.maximum(
+                    self.fill_height[0, i],
+                    self.height - np.min(p[0][np.where(p[1] == i)]) - 1
+                    )
             self.current_tetromino = None

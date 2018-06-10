@@ -15,9 +15,11 @@ class Game():
         self.debug = False
 
     def _debug_print(self):
-        print(self.tetromino, '\n\n',
-              self.board, '\n\n',
-              self.board.get_height())
+        print(self.tetromino)
+        print(self.tetromino.position())
+        print(self.tetromino.block_coordinates())
+        print(self.board)
+        print(self.board.get_height())
 
     def start(self):
         """Start the game."""

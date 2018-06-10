@@ -24,8 +24,8 @@ class Tetromino:
         # the board.
         self.row = 0
         self.col = 3 + int(board_width/2 - 2)
-        self.left_boundary = 2
-        self.right_boundary = board_width + 3
+        self.left_boundary = 3
+        self.right_boundary = board_width + 2
         self.board_width = board_width
 
     def __str__(self):
@@ -43,23 +43,22 @@ class Tetromino:
         from shapes.py
         """
         self.rotation_index = (self.rotation_index + 1)%4
-        indices = np.where(self.tetromino[self.rotation_index] == 0)
+        indices = self.block_coordinates()
 
         # Ensure none of the tetromino's blocks surpass the boundaries when
         # rotating.
-        for i in range(indices[0].size):
-            while (self.col + indices[1][i]) >= self.right_boundary:
-                self.col -= 1
-            while (self.col + indices[1][i]) <= self.left_boundary:
-                self.col += 1
+        if np.max(indices[1]) >= self.right_boundary:
+            self.col -= np.max(indices[1]) - self.right_boundary
+        if np.min(indices[1]) <= self.left_boundary:
+            self.col += self.left_boundary - np.min(indices[1])
 
     def move_right(self):
         """Move the tetromino to the right. Before rotation is done, ensure that
         the position is valid.
         """
-        for point in self.block_coordinates():
-            if (point[1]) >= self.right_boundary - 1:
-                return
+        indices = self.block_coordinates()
+        if np.max(indices[1]) >= self.right_boundary:
+            return
 
         self.col += 1
 
@@ -67,9 +66,9 @@ class Tetromino:
         """Move the tetromino to the left. Before rotation is done, ensure that
         the position is valid.
         """
-        for point in self.block_coordinates():
-            if (point[1]) <= self.left_boundary + 1:
-                return
+        indices = self.block_coordinates()
+        if np.min(indices[1]) <= self.left_boundary:
+            return
 
         self.col -= 1
 
@@ -81,7 +80,7 @@ class Tetromino:
         """Move the tetromino downwards."""
         self.row += 1
 
-    def hard_drop(self):
+    def hard_drop(self_height):
         pass
 
     def position(self):
@@ -91,20 +90,9 @@ class Tetromino:
     def block_coordinates(self):
         """Return the coordinates for every block in the tetromino matrix.
 
-        Returns
-        -------
-        coordinates: list of integer lists
-            The lists contain coordinate pairs that specifiy the row and column
-            each tetromino's block relative to the board.
+        Returns a tuple of a pair of np arrays. The first array contains the
+        rows and the second array contains columns.
         """
-        coordinates = []
-
-        # Locate which indices contain a block (1).
-        indices = np.where(self.tetromino[self.rotation_index] == 1)
-
-        # Format coordinates into a list of tuples.
-        for i in range(indices[0].size):
-            coordinates.append((self.row + indices[0][i],
-                                self.col + indices[1][i]))
-
-        return coordinates
+        rows = np.where(self.tetromino[self.rotation_index] == 1)[0] + self.row
+        cols = np.where(self.tetromino[self.rotation_index] == 1)[1] + self.col
+        return (rows, cols)
