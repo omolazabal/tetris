@@ -12,8 +12,7 @@ class Display:
 
 class Board:
     def __init__(self):
-        self.height = 20
-        self.width = 10
+        pass
 
 class Tetromino:
     def __init__(self):

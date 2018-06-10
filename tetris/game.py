@@ -1,11 +1,12 @@
 
+import os
 import pygame
 from pygame.locals import *
 from .core import tetromino, board
 from .settings import Settings
 
 
-class Game():
+class Game:
     """Class to run Tetris game."""
 
     def __init__(self):
@@ -15,6 +16,7 @@ class Game():
         self.debug = False
 
     def _debug_print(self):
+        os.system('cls' if os.name == 'nt' else 'clear')
         print(self.tetromino)
         print(self.tetromino.position())
         print(self.tetromino.block_coordinates())
@@ -35,14 +37,12 @@ class Game():
         self.MOVE_DOWN = pygame.USEREVENT + 1
 
         # Time
-        pygame.time.set_timer(self.MOVE_DOWN,
-                self.settings.tetromino.speed)
+        pygame.time.set_timer(self.MOVE_DOWN, self.settings.tetromino.speed)
         self.clock = pygame.time.Clock()
 
         # Init Tetris components
-        self.board = board.Board(self.settings.board.width,
-                self.settings.board.height)
-        self.tetromino = tetromino.Tetromino(self.settings.board.width)
+        self.board = board.Board()
+        self.tetromino = tetromino.Tetromino()
 
         self._play()
 

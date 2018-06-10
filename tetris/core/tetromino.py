@@ -2,12 +2,13 @@
 import random
 import numpy as np
 from ..utils.shapes import SHAPES
+from .board import Board
 
 
-class Tetromino:
+class Tetromino(Board):
     """Class for the Tetrominos in Tetris."""
 
-    def __init__(self, board_width=10):
+    def __init__(self):
         """Create a random tetromino, set its position, set its left and right
         boundaries.
 
@@ -23,10 +24,9 @@ class Tetromino:
         # Tetris board is padded with three extra columns on both sides of
         # the board.
         self.row = 0
-        self.col = 3 + int(board_width/2 - 2)
+        self.col = int(self.width/2) - 2
         self.left_boundary = 3
-        self.right_boundary = board_width + 2
-        self.board_width = board_width
+        self.right_boundary = self.width - 4
 
     def __str__(self):
         """Return numpy array of tetromino matrix"""
@@ -34,7 +34,7 @@ class Tetromino:
 
     def new_shape(self):
         """Randomly generate new shape."""
-        self.__init__(self.board_width)
+        self.__init__()
 
     def rotate(self):
         """Rotate the tetromino shape.
@@ -43,21 +43,21 @@ class Tetromino:
         from shapes.py
         """
         self.rotation_index = (self.rotation_index + 1)%4
-        indices = self.block_coordinates()
+        p = self.block_coordinates()
 
         # Ensure none of the tetromino's blocks surpass the boundaries when
         # rotating.
-        if np.max(indices[1]) >= self.right_boundary:
-            self.col -= np.max(indices[1]) - self.right_boundary
-        if np.min(indices[1]) <= self.left_boundary:
-            self.col += self.left_boundary - np.min(indices[1])
+        if np.max(p[1]) >= self.right_boundary:
+            self.col -= np.max(p[1]) - self.right_boundary
+        if np.min(p[1]) <= self.left_boundary:
+            self.col += self.left_boundary - np.min(p[1])
 
     def move_right(self):
         """Move the tetromino to the right. Before rotation is done, ensure that
         the position is valid.
         """
-        indices = self.block_coordinates()
-        if np.max(indices[1]) >= self.right_boundary:
+        p = self.block_coordinates()
+        if np.max(p[1]) >= self.right_boundary:
             return
 
         self.col += 1
@@ -66,8 +66,8 @@ class Tetromino:
         """Move the tetromino to the left. Before rotation is done, ensure that
         the position is valid.
         """
-        indices = self.block_coordinates()
-        if np.min(indices[1]) <= self.left_boundary:
+        p = self.block_coordinates()
+        if np.min(p[1]) <= self.left_boundary:
             return
 
         self.col -= 1
@@ -80,8 +80,11 @@ class Tetromino:
         """Move the tetromino downwards."""
         self.row += 1
 
-    def hard_drop(self_height):
+    def hard_drop(self):
         pass
+        # p = self.block_coordinates()
+        # self.row += np.min(heights[p[1]] - p[0])
+        
 
     def position(self):
         """Return the position of the tetromino as tuple."""

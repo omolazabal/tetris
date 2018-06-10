@@ -4,27 +4,19 @@ from . import tetromino
 import copy
 
 
-class Board():
+class Board:
     """Class for the board in Tetris."""
+    width = 10 + 6   # Accommodate for sides.
+    height = 20 + 4  # Accommodate for base and spawn.
+    fill_height = np.zeros((1, width), dtype=int)
 
-    def __init__(self, board_width=10, board_height=20):
+    def __init__(self):
         """Set the settings for the Tetris board. This includes the width,
         height, and initial cell values.
-
-        Parameters
-        ----------
-        board_width: integer (default=10)
-            Width of the Tetris board.
-        board_height: integer (default=20)
-            Height of the Tetris board.
         """
-        self.width = board_width + 6    # Accomodate for sides
-        self.height = board_height + 4  # Accommodate for spawning area & base.
         self.board = np.zeros((self.height, self.width), dtype=int)
         self.board[self.height-1, :] = np.ones(self.width)*9
 
-        self.fill_height = np.zeros((1, self.width), dtype=int)
-        self.fill_height.reshape(1, self.width, 1)
         self.top_out = False
 
         self.current_tetromino = None
@@ -130,7 +122,6 @@ class Board():
             self.top_out = True
         else:
             # Integrate tetromino into board & update heights.
-
             p = self.current_tetromino.block_coordinates()
             self.board[p[0], p[1]] = 1
 
