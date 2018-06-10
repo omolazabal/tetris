@@ -81,10 +81,8 @@ class Tetromino(Board):
         self.row += 1
 
     def hard_drop(self):
-        pass
-        # p = self.block_coordinates()
-        # self.row += np.min(heights[p[1]] - p[0])
-        
+        p = self.block_coordinates()
+        self.row += np.min((self.height - p[0]) - self.fill_height[0, p[1]]) - 2
 
     def position(self):
         """Return the position of the tetromino as tuple."""

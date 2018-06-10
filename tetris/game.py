@@ -17,10 +17,15 @@ class Game:
 
     def _debug_print(self):
         os.system('cls' if os.name == 'nt' else 'clear')
+        print('Current tetromino:')
         print(self.tetromino)
+        print('\nPosition:')
         print(self.tetromino.position())
+        print('\nBlock coordinates:')
         print(self.tetromino.block_coordinates())
+        print('\nBoard:')
         print(self.board)
+        print('\nBoard heights:')
         print(self.board.get_height())
 
     def start(self):
@@ -46,13 +51,12 @@ class Game:
 
         self._play()
 
-    def quit(self):
-        pygame.quit()
-        exit(0)
-
     def _play(self):
         """Begin game and check for keyboard inputs."""
         while True:
+            if self.board.update_board(self.tetromino):
+                self.tetromino.new_shape()
+
             self.clock.tick(self.settings.display.fps)
             keys_pressed = pygame.key.get_pressed()
 
@@ -77,13 +81,19 @@ class Game:
                 elif keys_pressed[K_UP]:
                     self.tetromino.rotate()
 
-                elif keys_pressed[K_n]:
-                    self.tetromino.new_shape()
+                elif keys_pressed[K_SPACE]:
+                    self.tetromino.hard_drop()
+                    self.board.update_board(self.tetromino)
+                    self.tetromino.soft_drop()
 
-                if self.board.update_board(self.tetromino):
+                elif keys_pressed[K_n]:
                     self.tetromino.new_shape()
 
             if self.debug:
                 self._debug_print()
 
         pygame.quit()
+
+    def quit(self):
+        pygame.quit()
+        exit(0)

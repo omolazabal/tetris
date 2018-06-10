@@ -1,4 +1,5 @@
 
+"""All available settings for Tetris game"""
 class Keyboard:
     def __init__(self):
         self.key_repeat_delay = 150
@@ -23,4 +24,4 @@ class Settings:
     display = Display()
     board = Board()
     tetromino = Tetromino()
-        
+

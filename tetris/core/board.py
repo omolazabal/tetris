@@ -28,6 +28,7 @@ class Board:
 
     def new_board(self):
         """Clear the board."""
+        self.fill_height.fill(0)
         self.__init__()
 
     def get_height(self):
@@ -97,9 +98,7 @@ class Board:
 
         # Find shadow for new tetromino.
         self.shadow = copy.deepcopy(new_tetromino)
-        while not self.collision(self.shadow):
-            self.shadow.soft_drop()
-        self.shadow.up()
+        self.shadow.hard_drop()
 
         # Write the new tetromino with its new position onto the board.
         p = new_tetromino.block_coordinates()
