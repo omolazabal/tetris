@@ -14,6 +14,7 @@ class Board:
         """Set the settings for the Tetris board. This includes the width,
         height, and initial cell values.
         """
+        self.fill_height.fill(0)
         self.board = np.zeros((self.height, self.width), dtype=int)
         self.board[self.height-1, :] = np.ones(self.width)*9
 
@@ -21,14 +22,12 @@ class Board:
         self.current_tetromino = None
         self.shadow = None
 
+    def reset(self):
+        self.__init__()
+
     def __str__(self):
         """Return cropped version of board."""
         return str(self.board[3:, 3:self.width-3])
-
-    def new_board(self):
-        """Clear the board."""
-        self.fill_height.fill(0)
-        self.__init__()
 
     def get_height(self):
         """Return height list of board."""
@@ -91,8 +90,6 @@ class Board:
         if self.collision(new_tetromino):
             self.place_tetromino()
             self._line_clear_check()
-            if self.top_out:
-                self.new_board()
             return True
 
         # Find shadow for new tetromino.

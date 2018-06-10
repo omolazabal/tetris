@@ -1,5 +1,6 @@
 
 import random
+import copy
 import numpy as np
 from ..utils.shapes import SHAPES
 from .board import Board
@@ -17,8 +18,11 @@ class Tetromino(Board):
         board_width: integer (default=10)
             Specifies the width of the Tetris board being used.
         """
-        self.tetromino = SHAPES[list(SHAPES.keys())[random.randint(0, 6)]]
+        self.shape = list(SHAPES.keys())[random.randint(0, 6)]
+        self.tetromino = SHAPES[self.shape]
         self.rotation_index = 0
+        self.held_tet = None
+        self.holding = False
 
         # Calculate position and left and right boundaries.
         # Tetris board is padded with three extra columns on both sides of
@@ -28,16 +32,39 @@ class Tetromino(Board):
         self.left_boundary = 3
         self.right_boundary = self.width - 4
 
-    def __str__(self):
+    def reset(self):
+        self.__init__()
+
+    def current_tetromino(self):
         """Return numpy array of tetromino matrix"""
-        return str(self.tetromino[self.rotation_index])
+        return self.tetromino[self.rotation_index]
 
     def new_shape(self):
         """Randomly generate new shape."""
-        self.tetromino = SHAPES[list(SHAPES.keys())[random.randint(0, 6)]]
+        self.shape = list(SHAPES.keys())[random.randint(0, 6)]
+        self.tetromino = SHAPES[self.shape]
         self.rotation_index = 0
+        self.holding = False
+
         self.row = 0
         self.col = int(self.width/2) - 2
+
+    def held_tetromino(self):
+        if self.held_tet == None:
+            return np.zeros((4, 4), dtype=int)
+        return self.held_tet[0]
+
+    def hold(self):
+        if not self.holding:
+            if self.held_tet == None:
+                self.held_tet = copy.deepcopy(self.tetromino)
+                self.new_shape()
+            else:
+                temp_tet = copy.deepcopy(self.held_tet)
+                self.held_tet = copy.deepcopy(self.tetromino)
+                self.tetromino = copy.deepcopy(temp_tet)
+            self.holding = True
+
 
     def rotate_right(self):
         """Rotate the tetromino shape right.
