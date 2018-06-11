@@ -7,9 +7,9 @@ class Keyboard:
 
 class Display:
     def __init__(self):
-        self.width = 468
-        self.height = 60
-        self.fps = 30
+        self.width = 800
+        self.height = 800
+        self.fps = 60
 
 class Board:
     def __init__(self):

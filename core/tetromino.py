@@ -2,9 +2,10 @@
 import random
 import copy
 import numpy as np
-from ..utils.shapes import SHAPES
+from utils.shapes import SHAPES
 from .board import Board
 
+COLORS = ['blue', 'red', 'yellow', 'orange', 'cyan', 'purple']
 
 class Tetromino(Board):
     """Class for the Tetrominos in Tetris."""
@@ -12,17 +13,13 @@ class Tetromino(Board):
     def __init__(self):
         """Create a random tetromino, set its position, set its left and right
         boundaries.
-
-        Parameters
-        ----------
-        board_width: integer (default=10)
-            Specifies the width of the Tetris board being used.
         """
         self.shape = list(SHAPES.keys())[random.randint(0, 6)]
         self.tetromino = SHAPES[self.shape]
         self.rotation_index = 0
         self.held_tet = None
         self.holding = False
+        self.color = COLORS[random.randint(0,5)]
 
         # Accomodate for padding of board and tetromino pieces.
         self.row = 0
@@ -44,9 +41,9 @@ class Tetromino(Board):
         self.tetromino = SHAPES[self.shape]
         self.rotation_index = 0
         self.holding = False
-
         self.row = 0
         self.col = int(self.width/2) - 2
+        self.color = COLORS[random.randint(0,5)]
 
     def held_tetromino(self):
         """Return the tetromino that is being held."""

@@ -17,6 +17,7 @@ class Board:
         self.fill_height.fill(0)
         self.board = np.zeros((self.height, self.width), dtype=int)
         self.board[self.height-1, :] = np.ones(self.width)*9
+        self.filled_rows = np.array([])
 
         self.top_out = False
         self.current_tetromino = None
@@ -29,6 +30,9 @@ class Board:
     def __str__(self):
         """Return cropped version of board."""
         return str(self.board[3:, 3:self.width-3])
+
+    def get_background_coords(self):
+        return np.where(self.board[3:, 3:self.width-3] == 0)
 
     def get_height(self):
         """Return height list of board."""
@@ -51,20 +55,20 @@ class Board:
         """Check to see if there is a line clear. If there is, delete the rows
         that contain the line clear are deleted.
         """
-        filled_rows = self._find_line_clear()
-        if filled_rows.size != 0:
+        self.filled_rows = self._find_line_clear()
+        if self.filled_rows.size != 0:
             # Delete the rows that have a line clears.
-            self.board = np.delete(self.board, filled_rows, axis=0)
-            self.fill_height -= filled_rows.size
+            self.board = np.delete(self.board, self.filled_rows, axis=0)
+            self.fill_height -= self.filled_rows.size
 
             # Pad the top of the board with rows of 0's.
-            npad = ((len(filled_rows), 0), (0, 0))
+            npad = ((len(self.filled_rows), 0), (0, 0))
             self.board = np.pad(self.board, pad_width=npad, mode='constant')
 
             # Adjust heights if needed - special case where the line clear is at
             # the top and there are holes directly beneath the line clear.
             for i in range(3, self.width-3):
-                if self.height - max(filled_rows) - 2 == self.fill_height[0, i]:
+                if self.height - max(self.filled_rows) - 2 == self.fill_height[0, i]:
                     while self.board[self.height - self.fill_height[0, i] - 1, i] == 0:
                         self.fill_height[0, i] -= 1
 
