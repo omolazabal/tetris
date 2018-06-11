@@ -99,7 +99,11 @@ class Board:
 
         # Find shadow for new tetromino.
         self.shadow = copy.deepcopy(new_tetromino)
-        self.shadow.hard_drop()
+        while not self.collision(self.shadow):
+            self.shadow.soft_drop()
+        self.shadow.up()
+        # self.shadow = copy.deepcopy(new_tetromino)
+        # self.shadow.hard_drop()
 
         # Write the new tetromino with its new position onto the board.
         p = new_tetromino.block_coordinates()

@@ -1,6 +1,5 @@
 
 import os
-import time
 import pygame
 import numpy as np
 from pygame.locals import *
@@ -11,6 +10,13 @@ from settings import Settings
 class Game:
     """Class to run Tetris game."""
 
+    TILE_SIZE = 32
+    TOP = 48
+    BOTTOM = 752
+    LEFT = 240
+    RIGHT = 592
+    BACKGROUND_LOC = (LEFT + TILE_SIZE, TOP + TILE_SIZE)
+
     def __init__(self):
         self.settings = Settings()
         self.board = None
@@ -18,15 +24,16 @@ class Game:
         self.debug = False
         self.pause = False
         self.display = None
-        self.start_time = time.time()
 
         self.tile_size = 32
         self.top_boundary = 48
         self.bottom_boundary = 752
         self.left_boundary = 240
         self.right_boundary = 592
+        self.background_loc = (self.left_boundary + self.tile_size,
+                self.top_boundary + self.tile_size)
 
-        self.background_img = pygame.image.load('assets/background.png')
+        self.background = pygame.image.load('assets/background.png')
         self.shadow_imgs = {
             'blue' : pygame.image.load('assets/blue_shadow.png'),
             'red' : pygame.image.load('assets/red_shadow.png'),
@@ -64,10 +71,6 @@ class Game:
         print('\nBoard heights')
         print(self.board.get_height())
 
-        print('\nRun time')
-        print('{:<8}{:<12}'.format(round((time.time() - self.start_time), 2),
-              'seconds'))
-
         if self.pause:
             print('\nPaused')
 
@@ -95,39 +98,44 @@ class Game:
 
         self._play()
 
-    def draw_shadow(self):
+    def blit_shadow(self):
         coords = self.board.shadow.block_coordinates()
         for x, y in zip(coords[1], coords[0]):
             self.display.blit(self.shadow_imgs[self.tetromino.color],
-                    (self.left_boundary + self.tile_size + (x - 3)*32,
-                     self.top_boundary + self.tile_size + (y - 3)*32))
+                    (self.BACKGROUND_LOC[0] + (x - 3)*32,
+                     self.BACKGROUND_LOC[1] + (y - 3)*32))
 
-    def draw_tetromino(self):
+    def blit_tetromino(self):
         coords = self.tetromino.block_coordinates()
         for x, y in zip(coords[1], coords[0]):
             self.display.blit(self.tetromino_imgs[self.tetromino.color],
-                    (self.left_boundary + self.tile_size + (x - 3)*32,
-                     self.top_boundary + self.tile_size + (y - 3)*32))
+                    (self.BACKGROUND_LOC[0] + (x - 3)*32,
+                     self.BACKGROUND_LOC[1] + (y - 3)*32))
+
+    def get_new_background(self):
+        self.background = self.display.copy().subsurface(
+                (self.BACKGROUND_LOC), (320, 640))
 
     def _play(self):
         """Begin game and check for keyboard inputs."""
-        self.display.fill((31, 31, 31))
-        self.display.blit(self.background_img, (self.left_boundary + self.tile_size, self.top_boundary + self.tile_size))
-        self.background = self.display.copy()
-
+        skip_shadow = False
         while True:
             if self.board.top_out:
                 self.board.reset()
                 self.tetromino.reset()
 
             if self.board.update_board(self.tetromino):
-                self.background = self.display.copy()
+                self.get_new_background()
                 self.tetromino.new_shape()
+                skip_shadow = True
 
             self.clock.tick(self.settings.display.fps)
-            self.display.blit(self.background, (0, 0))
-            self.draw_shadow()
-            self.draw_tetromino()
+            self.display.fill((32, 32, 32))
+            self.display.blit(self.background, self.BACKGROUND_LOC)
+            if not skip_shadow:
+                self.blit_shadow()
+            skip_shadow = False
+            self.blit_tetromino()
             pygame.display.update()
 
             keys_pressed = pygame.key.get_pressed()
@@ -163,12 +171,8 @@ class Game:
                 elif keys_pressed[K_SPACE]:
                     self.tetromino.hard_drop()
                     self.board.update_board(self.tetromino)
-
-                    self.display.blit(self.background, (0, 0))
-                    self.draw_tetromino()
-                    pygame.display.update()
-                    self.background = self.display.copy()
-
+                    self.display.blit(self.background, self.BACKGROUND_LOC)
+                    self.blit_tetromino()
                     self.tetromino.soft_drop()
 
                 elif keys_pressed[K_n]:
@@ -176,7 +180,17 @@ class Game:
 
             if self.board.filled_rows.size != 0:
                 # do fancy choppy croppy stuffs
-                print(self.board.filled_rows)
+                print(self.board.filled_rows - 3)
+                # self.background = pygame.transform.chop(self.background, 
+                #         (0,
+                #          self.tile_size*np.min(self.board.filled_rows - 1)+ 16,
+                #          0,
+                #          self.tile_size*self.board.filled_rows.size))
+                # base = pygame.transform.chop(self.background, 
+                #         (0,
+                #          self.tile_size*np.min(self.board.filled_rows - 1)+ 16,
+                #          0,
+                #          self.tile_size*self.board.filled_rows.size))
                 self.board.filled_rows = np.array([])
 
             if self.debug:
