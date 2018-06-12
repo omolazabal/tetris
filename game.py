@@ -169,7 +169,7 @@ class Game:
                     self.tetromino.hold()
 
                 elif keys_pressed[K_SPACE]:
-                    self.tetromino.hard_drop()
+                    self.board.hard_drop(self.tetromino)
                     self.board.update_board(self.tetromino)
                     self.display.blit(self.background, self.BACKGROUND_LOC)
                     self.blit_tetromino()
@@ -181,11 +181,11 @@ class Game:
             if self.board.filled_rows.size != 0:
                 # do fancy choppy croppy stuffs
                 print(self.board.filled_rows - 3)
-                # self.background = pygame.transform.chop(self.background, 
-                #         (0,
-                #          self.tile_size*np.min(self.board.filled_rows - 1)+ 16,
-                #          0,
-                #          self.tile_size*self.board.filled_rows.size))
+                self.background = pygame.transform.chop(self.background, 
+                        (0,
+                         self.tile_size*np.min(self.board.filled_rows - 1)+ 16,
+                         0,
+                         self.tile_size*self.board.filled_rows.size))
                 # base = pygame.transform.chop(self.background, 
                 #         (0,
                 #          self.tile_size*np.min(self.board.filled_rows - 1)+ 16,

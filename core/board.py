@@ -1,20 +1,18 @@
 
 import numpy as np
-from . import tetromino
 import copy
 
 
 class Board:
     """Class for the board in Tetris."""
-    width = 10 + 6   # Accommodate for sides.
-    height = 20 + 4  # Accommodate for base and spawn.
-    fill_height = np.zeros((1, width), dtype=int)
 
     def __init__(self):
         """Set the settings for the Tetris board. This includes the width,
         height, and initial cell values.
         """
-        self.fill_height.fill(0)
+        self.width = 10 + 6   # Accommodate for sides.
+        self.height = 20 + 4  # Accommodate for base and spawn.
+        self.fill_height = np.zeros((1, self.width), dtype=int)
         self.board = np.zeros((self.height, self.width), dtype=int)
         self.board[self.height-1, :] = np.ones(self.width)*9
         self.filled_rows = np.array([])
@@ -30,9 +28,6 @@ class Board:
     def __str__(self):
         """Return cropped version of board."""
         return str(self.board[3:, 3:self.width-3])
-
-    def get_background_coords(self):
-        return np.where(self.board[3:, 3:self.width-3] == 0)
 
     def get_height(self):
         """Return height list of board."""
@@ -72,12 +67,19 @@ class Board:
                     while self.board[self.height - self.fill_height[0, i] - 1, i] == 0:
                         self.fill_height[0, i] -= 1
 
-    def collision(self, tetromino):
+    def hard_drop(self, tet):
+        """Instantly drop the tetromino to the bottom of the board."""
+        p = tet.block_coordinates()
+        self.board[p[0], p[1]] = 0
+        while not self.collision(tet):
+            tet.soft_drop()
+        tet.up()
+
+    def collision(self, tet):
         """Check to see if tetromino has collided with a placed tetromino."""
-        p = tetromino.block_coordinates()
+        p = tet.block_coordinates()
         if self.board[p[0], p[1]].any() == 1 or self.board[p[0], p[1]].any() == 9:
             return True
-
         return False
 
     def update_board(self, new_tetromino):
@@ -87,8 +89,6 @@ class Board:
         # Erase image of current tetromino (if it exists).
         if self.current_tetromino is not None:
             p = self.current_tetromino.block_coordinates()
-            sp = self.shadow.block_coordinates()
-            self.board[sp[0], sp[1]] = 0
             self.board[p[0], p[1]] = 0
 
         # If the new tetromino has a position that is a collision, place it.
@@ -99,16 +99,10 @@ class Board:
 
         # Find shadow for new tetromino.
         self.shadow = copy.deepcopy(new_tetromino)
-        while not self.collision(self.shadow):
-            self.shadow.soft_drop()
-        self.shadow.up()
-        # self.shadow = copy.deepcopy(new_tetromino)
-        # self.shadow.hard_drop()
+        self.hard_drop(self.shadow)
 
         # Write the new tetromino with its new position onto the board.
         p = new_tetromino.block_coordinates()
-        sp = self.shadow.block_coordinates()
-        self.board[sp[0], sp[1]] = 2
         self.board[p[0], p[1]] = 1
 
         # Save the new tetromino as the current one.

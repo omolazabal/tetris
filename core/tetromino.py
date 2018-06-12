@@ -3,29 +3,33 @@ import random
 import copy
 import numpy as np
 from utils.shapes import SHAPES
-from .board import Board
 
-COLORS = ['blue', 'red', 'yellow', 'orange', 'cyan', 'purple']
 
-class Tetromino(Board):
+class Tetromino():
     """Class for the Tetrominos in Tetris."""
+
+    COLORS = ['blue', 'red', 'yellow', 'orange', 'cyan', 'purple']
 
     def __init__(self):
         """Create a random tetromino, set its position, set its left and right
         boundaries.
         """
+        # Board dimensions
+        self.width = 10 + 6
+        self.height = 20 + 4
+        self.left_boundary = 3
+        self.right_boundary = self.width - 4
+
+        # Tetromino position
+        self.row = 0
+        self.col = int(self.width/2) - 2
+
         self.shape = list(SHAPES.keys())[random.randint(0, 6)]
         self.tetromino = SHAPES[self.shape]
         self.rotation_index = 0
         self.held_tet = None
         self.holding = False
-        self.color = COLORS[random.randint(0,5)]
-
-        # Accomodate for padding of board and tetromino pieces.
-        self.row = 0
-        self.col = int(self.width/2) - 2
-        self.left_boundary = 3
-        self.right_boundary = self.width - 4
+        self.color = self.COLORS[random.randint(0,5)]
 
     def reset(self):
         """Reset the tetromino."""
@@ -43,7 +47,7 @@ class Tetromino(Board):
         self.holding = False
         self.row = 0
         self.col = int(self.width/2) - 2
-        self.color = COLORS[random.randint(0,5)]
+        self.color = self.COLORS[random.randint(0,5)]
 
     def held_tetromino(self):
         """Return the tetromino that is being held."""
@@ -123,11 +127,6 @@ class Tetromino(Board):
     def soft_drop(self):
         """Move the tetromino downwards."""
         self.row += 1
-
-    def hard_drop(self):
-        """Instantly drop the tetromino to the bottom of the board."""
-        p = self.block_coordinates()
-        self.row += np.min((self.height - p[0]) - self.fill_height[0, p[1]]) - 2
 
     def position(self):
         """Return the position of the tetromino as tuple."""
