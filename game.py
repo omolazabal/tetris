@@ -44,12 +44,12 @@ class Game:
             'purple' : pygame.image.load('assets/purple_shadow.png'),
         }
         self.tetromino_imgs = {
-            'blue' : pygame.image.load('assets/blue_tetromino.png'),
-            'red' : pygame.image.load('assets/red_tetromino.png'),
-            'yellow' : pygame.image.load('assets/yellow_tetromino.png'),
-            'orange' : pygame.image.load('assets/orange_tetromino.png'),
-            'cyan' : pygame.image.load('assets/cyan_tetromino.png'),
-            'purple' : pygame.image.load('assets/purple_tetromino.png'),
+            'blue' : pygame.image.load('assets/blue_tile.png'),
+            'red' : pygame.image.load('assets/red_tile.png'),
+            'yellow' : pygame.image.load('assets/yellow_tile.png'),
+            'orange' : pygame.image.load('assets/orange_tile.png'),
+            'cyan' : pygame.image.load('assets/cyan_tile.png'),
+            'purple' : pygame.image.load('assets/purple_tile.png'),
         }
 
     def _debug_print(self):
