@@ -33,7 +33,8 @@ class Game:
         self.background_loc = (self.left_boundary + self.tile_size,
                 self.top_boundary + self.tile_size)
 
-        self.background = pygame.image.load('assets/background.png')
+        self.background_img = 'assets/background.png'
+        self.background = pygame.image.load(self.background_img)
         self.shadow_imgs = {
             'blue' : pygame.image.load('assets/blue_shadow.png'),
             'red' : pygame.image.load('assets/red_shadow.png'),
@@ -118,16 +119,29 @@ class Game:
 
     def _play(self):
         """Begin game and check for keyboard inputs."""
+        cover = pygame.Surface((384, 48))
+        cover.fill((32, 32, 32))
         skip_shadow = False
         while True:
             if self.board.top_out:
                 self.board.reset()
                 self.tetromino.reset()
+                self.background = pygame.image.load(self.background_img)
 
             if self.board.update_board(self.tetromino):
                 self.get_new_background()
                 self.tetromino.new_shape()
                 skip_shadow = True
+
+            if self.board.filled_rows.size != 0:
+                self.display.blit(pygame.transform.chop(self.background, 
+                        (0, self.tile_size*np.min(self.board.filled_rows - 3),
+                         0, self.tile_size*self.board.filled_rows.size)),
+                        (self.BACKGROUND_LOC[0], 
+                            self.BACKGROUND_LOC[1] +
+                            self.tile_size*self.board.filled_rows.size))
+                self.get_new_background()
+                self.board.filled_rows = np.array([])
 
             self.clock.tick(self.settings.display.fps)
             self.display.fill((32, 32, 32))
@@ -136,6 +150,7 @@ class Game:
                 self.blit_shadow()
             skip_shadow = False
             self.blit_tetromino()
+            self.display.blit(cover, (self.LEFT, 0))
             pygame.display.update()
 
             keys_pressed = pygame.key.get_pressed()
@@ -144,9 +159,6 @@ class Game:
 
                 if keys_pressed[K_ESCAPE]:
                     self._pause()
-
-                elif event.type == self.MOVE_DOWN:
-                    self.tetromino.soft_drop()
 
                 elif keys_pressed[K_DOWN]:
                     self.tetromino.soft_drop()
@@ -168,30 +180,20 @@ class Game:
                 elif keys_pressed[K_x]:
                     self.tetromino.hold()
 
-                elif keys_pressed[K_SPACE]:
-                    self.board.hard_drop(self.tetromino)
-                    self.board.update_board(self.tetromino)
-                    self.display.blit(self.background, self.BACKGROUND_LOC)
-                    self.blit_tetromino()
-                    self.tetromino.soft_drop()
-
                 elif keys_pressed[K_n]:
                     self.tetromino.new_shape()
 
-            if self.board.filled_rows.size != 0:
-                # do fancy choppy croppy stuffs
-                print(self.board.filled_rows - 3)
-                self.background = pygame.transform.chop(self.background, 
-                        (0,
-                         self.tile_size*np.min(self.board.filled_rows - 1)+ 16,
-                         0,
-                         self.tile_size*self.board.filled_rows.size))
-                # base = pygame.transform.chop(self.background, 
-                #         (0,
-                #          self.tile_size*np.min(self.board.filled_rows - 1)+ 16,
-                #          0,
-                #          self.tile_size*self.board.filled_rows.size))
-                self.board.filled_rows = np.array([])
+                if event.type == self.MOVE_DOWN:
+                    self.tetromino.soft_drop()
+
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_SPACE:
+                        self.board.hard_drop(self.tetromino)
+                        self.board.update_board(self.tetromino)
+                        self.display.blit(self.background, self.BACKGROUND_LOC)
+                        self.blit_tetromino()
+                        self.tetromino.soft_drop()
+
 
             if self.debug:
                 self._debug_print()
