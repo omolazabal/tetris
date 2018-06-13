@@ -1,9 +1,10 @@
 
 """All available settings for Tetris game"""
+
 class Keyboard:
     def __init__(self):
-        self.key_repeat_delay = 150
-        self.key_repeat_interval = 30
+        self.delay = 20
+        self.interval = 20
 
 class Display:
     def __init__(self):
@@ -19,7 +20,7 @@ class Tetromino:
     def __init__(self):
         self.speed = 1000
 
-class Settings:
+class PrelaunchSettings:
     keyboard = Keyboard()
     display = Display()
     board = Board()
