@@ -330,9 +330,11 @@ class Score:
     def add_score(self, line_clears):
         self.score += self.LC_SCORE[line_clears]*(self.level+1)
         self.line_count += line_clears
-        if self.line_count >= 10:
-            self.line_count = 0
-            self.level += 1
+        if self.level != 10:
+            if self.line_count >= 10:
+                self.line_count = 0
+                self.level += 1
+                return True
 
     def reset(self):
         self.score = 0

@@ -43,6 +43,7 @@ class Game:
         self.debug = False
         self.paused = False
         self.display = None
+        self.speed = TimerSettings.drop_interval
 
         self.background_img = 'tetris/assets/background.png'
         self.background_border_img = 'tetris/assets/background_border.png'
@@ -75,6 +76,8 @@ class Game:
         self.font_name = pg.font.match_font('arial', 1)
         self.held_font = pg.font.Font(self.font_name, self.FONT_SIZE).render('HOLD', True, (255, 255, 255))
         self.next_font = pg.font.Font(self.font_name, self.FONT_SIZE).render('NEXT', True, (255, 255, 255))
+        self.level_font = pg.font.Font(self.font_name, self.FONT_SIZE).render('LEVEL', True, (255, 255, 255))
+        self.score_font = pg.font.Font(self.font_name, self.FONT_SIZE).render('SCORE', True, (255, 255, 255))
 
     def debug_print(self):
         """Print Tetris pieces and relevant information to console."""
@@ -99,7 +102,7 @@ class Game:
         pg.display.set_caption('Tetris')
         self.display = pg.display.set_mode((DisplaySettings.width, DisplaySettings.height))
         self.MOVE_DOWN = pg.USEREVENT + 1
-        pg.time.set_timer(self.MOVE_DOWN, TimerSettings.drop_interval)
+        pg.time.set_timer(self.MOVE_DOWN, self.speed)
         pg.key.set_repeat(KeyboardSettings.delay, KeyboardSettings.interval)
         self.clock = pg.time.Clock()
         self.play()
@@ -139,10 +142,14 @@ class Game:
                 (self.BACKGROUND_LOC), (320, 640))
 
     def blit_text(self):
-        score = pg.font.Font(self.font_name, self.FONT_SIZE).render('SCORE: {}'.format(self.score.score), True, (255, 255, 255))
+        score = pg.font.Font(self.font_name, self.FONT_SIZE).render(str(self.score.score), True, (255, 255, 255))
+        level = pg.font.Font(self.font_name, self.FONT_SIZE).render(str(self.score.level), True, (255, 255, 255))
         self.display.blit(self.held_font, (self.SIDE_FONT_LOC[0], self.SIDE_FONT_LOC[1] + self.TILE_SIZE*8))
         self.display.blit(self.next_font, self.SIDE_FONT_LOC)
-        self.display.blit(score, (self.SIDE_FONT_LOC[0] + self.TILE_SIZE*16, self.SIDE_FONT_LOC[1]))
+        self.display.blit(self.level_font, (self.SIDE_FONT_LOC[0] + self.TILE_SIZE*16, self.SIDE_FONT_LOC[1] + self.TILE_SIZE*8))
+        self.display.blit(self.score_font, (self.SIDE_FONT_LOC[0] + self.TILE_SIZE*16, self.SIDE_FONT_LOC[1]))
+        self.display.blit(score, (self.SIDE_FONT_LOC[0] + self.TILE_SIZE*16, self.SIDE_FONT_LOC[1] + self.TILE_SIZE*2))
+        self.display.blit(level, (self.SIDE_FONT_LOC[0] + self.TILE_SIZE*16, self.SIDE_FONT_LOC[1] + self.TILE_SIZE*8 + self.TILE_SIZE*2))
 
     def render_frame(self):
         self.display.fill((27, 27, 27))
@@ -186,7 +193,9 @@ class Game:
                 self.reset()
 
             if self.board.filled_rows.size != 0:
-                self.score.add_score(self.board.filled_rows.size)
+                if self.score.add_score(self.board.filled_rows.size):
+                    self.speed -= 50
+                    pg.time.set_timer(self.MOVE_DOWN, self.speed)
                 self.clear_line()
 
             self.clock.tick(DisplaySettings.fps)
@@ -206,7 +215,7 @@ class Game:
                     if event.key == pg.K_DOWN:
                         if self.board.soft_drop(self.tetromino):
                             self.get_new_background()
-                        pg.time.set_timer(self.MOVE_DOWN, TimerSettings.drop_interval)
+                        pg.time.set_timer(self.MOVE_DOWN, self.speed)
 
                     if event.key == pg.K_LEFT:
                         self.board.move_left(self.tetromino)

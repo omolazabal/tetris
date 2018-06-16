@@ -17,4 +17,4 @@ class TetrominoSettings:
     pass
 
 class TimerSettings:
-    drop_interval = 750
+    drop_interval = 1000
