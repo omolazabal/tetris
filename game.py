@@ -4,7 +4,7 @@ import pygame as pg
 import numpy as np
 from pygame.locals import *
 from tetris.utils import Timer
-from tetris.core import Tetromino, Board
+from tetris.core import Tetromino, Board, Score
 from tetris.settings import *
 
 
@@ -37,8 +37,9 @@ class Game:
     def __init__(self):
         pg.init()
 
-        self.board = None
-        self.tetromino = None
+        self.board = Board()
+        self.tetromino = Tetromino()
+        self.score = Score()
         self.debug = False
         self.paused = False
         self.display = None
@@ -72,7 +73,7 @@ class Game:
         self.cover.fill((27, 27, 27))
 
         self.font_name = pg.font.match_font('arial', 1)
-        self.held_font = pg.font.Font(self.font_name, self.FONT_SIZE).render('HELD', True, (255, 255, 255))
+        self.held_font = pg.font.Font(self.font_name, self.FONT_SIZE).render('HOLD', True, (255, 255, 255))
         self.next_font = pg.font.Font(self.font_name, self.FONT_SIZE).render('NEXT', True, (255, 255, 255))
 
     def debug_print(self):
@@ -83,11 +84,6 @@ class Game:
         print(self.tetromino.position())
         print('\nBlock coordinates')
         print(self.tetromino.block_coordinates())
-
-        print('{:<17}{:<15}'.format('\nTetromino', 'Held'))
-        for x, y in zip(self.tetromino.current_tetromino(),
-                self.tetromino.held_tetromino()):
-            print('{:<13}{:<15}'.format(str(x), str(y)))
 
         print('\nBoard')
         print(self.board)
@@ -100,22 +96,12 @@ class Game:
 
     def start(self):
         """Start the game."""
-        # Init pg
         pg.display.set_caption('Tetris')
         self.display = pg.display.set_mode((DisplaySettings.width, DisplaySettings.height))
-
-        # User events
         self.MOVE_DOWN = pg.USEREVENT + 1
         pg.time.set_timer(self.MOVE_DOWN, TimerSettings.drop_interval)
         pg.key.set_repeat(KeyboardSettings.delay, KeyboardSettings.interval)
-
-        # Time
         self.clock = pg.time.Clock()
-
-        # Init Tetris components
-        self.board = Board()
-        self.tetromino = Tetromino()
-
         self.play()
 
     def blit_shadow(self):
@@ -152,6 +138,12 @@ class Game:
         self.background = self.display.copy().subsurface(
                 (self.BACKGROUND_LOC), (320, 640))
 
+    def blit_text(self):
+        score = pg.font.Font(self.font_name, self.FONT_SIZE).render('SCORE: {}'.format(self.score.score), True, (255, 255, 255))
+        self.display.blit(self.held_font, (self.SIDE_FONT_LOC[0], self.SIDE_FONT_LOC[1] + self.TILE_SIZE*8))
+        self.display.blit(self.next_font, self.SIDE_FONT_LOC)
+        self.display.blit(score, (self.SIDE_FONT_LOC[0] + self.TILE_SIZE*16, self.SIDE_FONT_LOC[1]))
+
     def render_frame(self):
         self.display.fill((27, 27, 27))
         self.display.blit(self.background, self.BACKGROUND_LOC)
@@ -165,8 +157,24 @@ class Game:
         self.display.blit(self.background_border, self.BACKGROUND_BORDER_LOC)
         self.display.blit(self.side_background_border, (self.SIDE_BACKGROUND_BORDER_LOC[0], self.SIDE_BACKGROUND_BORDER_LOC[1] + self.TILE_SIZE*8))
         self.display.blit(self.side_background_border, self.SIDE_BACKGROUND_BORDER_LOC)
-        self.display.blit(self.held_font, (self.SIDE_FONT_LOC[0], self.SIDE_FONT_LOC[1] + self.TILE_SIZE*8))
-        self.display.blit(self.next_font, self.SIDE_FONT_LOC)
+        self.blit_text()
+
+    def clear_line(self):
+        chop = pg.transform.chop(self.background,
+                (0, self.TILE_SIZE*np.min(self.board.filled_rows - 3),
+                    0, self.TILE_SIZE*self.board.filled_rows.size))
+        self.display.blit(chop,
+                (self.BACKGROUND_LOC[0], self.BACKGROUND_LOC[1] +
+                    self.TILE_SIZE*self.board.filled_rows.size))
+        self.get_new_background()
+        self.board.filled_rows = np.array([])
+
+    def reset(self):
+        self.score.reset()
+        self.board.reset()
+        self.tetromino.reset()
+        self.board.update_board(self.tetromino)
+        self.background = pg.image.load(self.background_img)
 
 
     def play(self):
@@ -175,27 +183,18 @@ class Game:
 
         while True:
             if self.board.top_out:
-                self.board.reset()
-                self.tetromino.reset()
-                self.board.update_board(self.tetromino)
-                self.background = pg.image.load(self.background_img)
+                self.reset()
 
             if self.board.filled_rows.size != 0:
-                chop = pg.transform.chop(self.background,
-                        (0, self.TILE_SIZE*np.min(self.board.filled_rows - 3),
-                         0, self.TILE_SIZE*self.board.filled_rows.size))
-                self.display.blit(chop,
-                        (self.BACKGROUND_LOC[0], self.BACKGROUND_LOC[1] +
-                            self.TILE_SIZE*self.board.filled_rows.size))
-                self.get_new_background()
-                self.board.filled_rows = np.array([])
+                self.score.add_score(self.board.filled_rows.size)
+                self.clear_line()
 
             self.clock.tick(DisplaySettings.fps)
             self.render_frame()
             pg.display.update()
 
             for event in pg.event.get():
-                if event.type == self.MOVE_DOWN:
+                if event.type == self.MOVE_DOWN and not self.board.top_out:
                     if self.board.soft_drop(self.tetromino):
                         self.get_new_background()
 

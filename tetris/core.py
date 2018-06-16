@@ -95,6 +95,9 @@ class Board:
 
         # If the new tetromino has a position that is a collision, place it.
         if self.collision(new_tetromino):
+            if self.current_tetromino is None:
+                self.top_out = True
+                return True
             if drop:
                 self.place_tetromino()
                 self._line_clear_check()
@@ -126,29 +129,20 @@ class Board:
     def place_tetromino(self):
         """Place the tetromino onto the board."""
 
-        # Top out occurs when a new tetromino has a collision immediately when
-        # it spawns (before theres a chance to save it as the "current"
-        # tetromino.
-        if self.current_tetromino == None:
-            self.top_out = True
-        else:
-            # Integrate tetromino into board & update heights.
-            p = self.current_tetromino.block_coordinates()
-            self.board[p[0], p[1]] = 1
+        # Integrate tetromino into board & update heights.
+        p = self.current_tetromino.block_coordinates()
+        self.board[p[0], p[1]] = 1
 
-            for i in np.unique(p[1]):
-                self.fill_height[0, i] = np.maximum(
-                    self.fill_height[0, i],
-                    self.height - np.min(p[0][np.where(p[1] == i)]) - 1
-                    )
-            self.current_tetromino = None
-            self.holding = False
+        for i in np.unique(p[1]):
+            self.fill_height[0, i] = np.maximum(
+                self.fill_height[0, i],
+                self.height - np.min(p[0][np.where(p[1] == i)]) - 1
+                )
+        self.current_tetromino = None
+        self.holding = False
 
-    def held_tetromino(self):
-        """Return the tetromino that is being held."""
-        if self.held_tetromino == None:
-            return np.zeros((4, 4), dtype=int)
-        return self.held_tetromino[0]
+        # if np.max(self.fill_height) > 19:
+        #     self.top_out = True
 
     def hold(self, tetromino):
         """Hold the tetromino."""
@@ -321,4 +315,26 @@ class Tetromino():
 
 
 class Score:
-    pass
+    LC_SCORE = {
+        1 : 40,
+        2 : 100,
+        3 : 300,
+        4 : 1200
+    }
+
+    def __init__(self):
+        self.score = 0
+        self.line_count = 0
+        self.level = 0
+
+    def add_score(self, line_clears):
+        self.score += self.LC_SCORE[line_clears]*(self.level+1)
+        self.line_count += line_clears
+        if self.line_count >= 10:
+            self.line_count = 0
+            self.level += 1
+
+    def reset(self):
+        self.score = 0
+        self.line_count = 0
+        self.level = 0
