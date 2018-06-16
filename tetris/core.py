@@ -255,7 +255,7 @@ class Tetromino():
 
         # Tetromino position
         self.row = 3
-        self.col = int(self.width/2) - 2
+        self.col = self.width//2 - 2
 
         self.shape = list(SHAPES.keys())[random.randint(0, 6)]
         self.tetromino = SHAPES[self.shape]
@@ -270,7 +270,7 @@ class Tetromino():
         self.row = 3
         self.col = int(self.width/2)-2
         self.shape = tetromino.shape
-        self.rotation_index = tetromino.rotation_index
+        self.rotation_index = 0
         self.color = tetromino.color
         self.tetromino = SHAPES[self.shape]
 

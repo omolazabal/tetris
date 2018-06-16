@@ -12,11 +12,21 @@ class Game:
     """Class to run Tetris game."""
 
     TILE_SIZE = 32
-    TOP = 48
-    BOTTOM = 752
+    TOP = 80
+    BOTTOM = 80
     LEFT = 240
-    RIGHT = 592
-    BACKGROUND_LOC = (LEFT + TILE_SIZE, TOP + TILE_SIZE)
+    RIGHT = 560
+    BACKGROUND_LOC = (LEFT, TOP)
+    HELD_BACKGROUND_LOC = (LEFT - TILE_SIZE*6 - 8, TOP + TILE_SIZE*5)
+    HELD_TET_LOC = {
+        'I' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE/2, HELD_BACKGROUND_LOC[1] + TILE_SIZE/2),
+        'O' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE/2, HELD_BACKGROUND_LOC[1] + TILE_SIZE),
+        'L' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE, HELD_BACKGROUND_LOC[1] + TILE_SIZE),
+        'J' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE, HELD_BACKGROUND_LOC[1] + TILE_SIZE),
+        'T' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE, HELD_BACKGROUND_LOC[1] + TILE_SIZE),
+        'Z' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE, HELD_BACKGROUND_LOC[1] + TILE_SIZE),
+        'S' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE, HELD_BACKGROUND_LOC[1] + TILE_SIZE),
+    }
 
     def __init__(self):
         self.board = None
@@ -30,11 +40,10 @@ class Game:
         self.bottom_boundary = 752
         self.left_boundary = 240
         self.right_boundary = 592
-        self.background_loc = (self.left_boundary + self.tile_size,
-                               self.top_boundary + self.tile_size)
+        self.background_loc = (240, 80)
 
         self.background_img = 'tetris/assets/background.png'
-        self.background = pg.image.load(self.background_img)
+        self.held_background_img = 'tetris/assets/held_background.png'
         self.shadow_imgs = {
             'blue' : pg.image.load('tetris/assets/blue_shadow.png'),
             'red' : pg.image.load('tetris/assets/red_shadow.png'),
@@ -51,6 +60,9 @@ class Game:
             'cyan' : pg.image.load('tetris/assets/cyan_tile.png'),
             'purple' : pg.image.load('tetris/assets/purple_tile.png'),
         }
+
+        self.background = pg.image.load(self.background_img)
+        self.held_background = pg.image.load(self.held_background_img)
 
     def debug_print(self):
         """Print Tetris pieces and relevant information to console."""
@@ -104,6 +116,15 @@ class Game:
                     (self.BACKGROUND_LOC[0] + (x - 3)*32,
                      self.BACKGROUND_LOC[1] + (y - 3)*32))
 
+    def blit_held_tetromino(self):
+        if self.board.held_tetromino is not None:
+            pos= self.board.held_tetromino.position()
+            coords = self.board.held_tetromino.block_coordinates()
+            for x, y in zip(coords[1], coords[0]):
+                self.display.blit(self.tetromino_imgs[self.board.held_tetromino.color],
+                        (self.HELD_TET_LOC[self.board.held_tetromino.shape][0] + (x - self.board.held_tetromino.col)*32,
+                        self.HELD_TET_LOC[self.board.held_tetromino.shape][1] + (y - 3)*32))
+
     def blit_tetromino(self):
         coords = self.tetromino.block_coordinates()
         for x, y in zip(coords[1], coords[0]):
@@ -144,6 +165,8 @@ class Game:
             self.display.blit(self.background, self.BACKGROUND_LOC)
             self.blit_shadow()
             self.blit_tetromino()
+            self.display.blit(self.held_background, self.HELD_BACKGROUND_LOC)
+            self.blit_held_tetromino()
             self.display.blit(cover, (self.LEFT, 0))
             pg.display.update()
 
