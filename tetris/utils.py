@@ -3,7 +3,19 @@ import numpy as np
 import pygame
 
 class Timer:
-    pass
+
+    def __init__(self):
+        self.time = 0
+        self.clock = pygame.time.Clock()
+
+    def add(self, ms):
+        self.time += ms
+
+    def reset(self):
+        self.time = 0
+
+    def get(self):
+        return self.time
 
 
 """Standard tetromino shapes in Tetris. Each shape and their rotations are 

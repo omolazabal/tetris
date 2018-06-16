@@ -1,11 +1,11 @@
 
 import os
-import pygame
+import pygame as pg
 import numpy as np
 from pygame.locals import *
 from tetris.utils import Timer
 from tetris.core import Tetromino, Board
-from tetris.settings import PrelaunchSettings
+from tetris.settings import *
 
 
 class Game:
@@ -19,11 +19,10 @@ class Game:
     BACKGROUND_LOC = (LEFT + TILE_SIZE, TOP + TILE_SIZE)
 
     def __init__(self):
-        self.pre_settings = PrelaunchSettings()
         self.board = None
         self.tetromino = None
         self.debug = False
-        self.pause = False
+        self.paused = False
         self.display = None
 
         self.tile_size = 32
@@ -35,25 +34,25 @@ class Game:
                                self.top_boundary + self.tile_size)
 
         self.background_img = 'tetris/assets/background.png'
-        self.background = pygame.image.load(self.background_img)
+        self.background = pg.image.load(self.background_img)
         self.shadow_imgs = {
-            'blue' : pygame.image.load('tetris/assets/blue_shadow.png'),
-            'red' : pygame.image.load('tetris/assets/red_shadow.png'),
-            'yellow' : pygame.image.load('tetris/assets/yellow_shadow.png'),
-            'orange' : pygame.image.load('tetris/assets/orange_shadow.png'),
-            'cyan' : pygame.image.load('tetris/assets/cyan_shadow.png'),
-            'purple' : pygame.image.load('tetris/assets/purple_shadow.png'),
+            'blue' : pg.image.load('tetris/assets/blue_shadow.png'),
+            'red' : pg.image.load('tetris/assets/red_shadow.png'),
+            'yellow' : pg.image.load('tetris/assets/yellow_shadow.png'),
+            'orange' : pg.image.load('tetris/assets/orange_shadow.png'),
+            'cyan' : pg.image.load('tetris/assets/cyan_shadow.png'),
+            'purple' : pg.image.load('tetris/assets/purple_shadow.png'),
         }
         self.tetromino_imgs = {
-            'blue' : pygame.image.load('tetris/assets/blue_tile.png'),
-            'red' : pygame.image.load('tetris/assets/red_tile.png'),
-            'yellow' : pygame.image.load('tetris/assets/yellow_tile.png'),
-            'orange' : pygame.image.load('tetris/assets/orange_tile.png'),
-            'cyan' : pygame.image.load('tetris/assets/cyan_tile.png'),
-            'purple' : pygame.image.load('tetris/assets/purple_tile.png'),
+            'blue' : pg.image.load('tetris/assets/blue_tile.png'),
+            'red' : pg.image.load('tetris/assets/red_tile.png'),
+            'yellow' : pg.image.load('tetris/assets/yellow_tile.png'),
+            'orange' : pg.image.load('tetris/assets/orange_tile.png'),
+            'cyan' : pg.image.load('tetris/assets/cyan_tile.png'),
+            'purple' : pg.image.load('tetris/assets/purple_tile.png'),
         }
 
-    def _debug_print(self):
+    def debug_print(self):
         """Print Tetris pieces and relevant information to console."""
         os.system('cls' if os.name == 'nt' else 'clear')
 
@@ -78,25 +77,25 @@ class Game:
 
     def start(self):
         """Start the game."""
-        # Init pygame
-        pygame.init()
-        pygame.display.set_caption('Tetris')
-        pygame.mouse.set_visible(0)
-        self.display = pygame.display.set_mode((self.pre_settings.display.width, self.pre_settings.display.height))
+        # Init pg
+        pg.init()
+        pg.display.set_caption('Tetris')
+        pg.mouse.set_visible(0)
+        self.display = pg.display.set_mode((DisplaySettings.width, DisplaySettings.height))
 
         # User events
-        self.MOVE_DOWN = pygame.USEREVENT + 1
-        pygame.time.set_timer(self.MOVE_DOWN, self.pre_settings.tetromino.speed)
-        pygame.key.set_repeat(self.pre_settings.keyboard.delay, self.pre_settings.keyboard.interval)
+        self.MOVE_DOWN = pg.USEREVENT + 1
+        pg.time.set_timer(self.MOVE_DOWN, TimerSettings.drop_interval)
+        pg.key.set_repeat(KeyboardSettings.delay, KeyboardSettings.interval)
 
         # Time
-        self.clock = pygame.time.Clock()
+        self.clock = pg.time.Clock()
 
         # Init Tetris components
         self.board = Board()
         self.tetromino = Tetromino()
 
-        self._play()
+        self.play()
 
     def blit_shadow(self):
         coords = self.board.shadow.block_coordinates()
@@ -116,113 +115,107 @@ class Game:
         self.background = self.display.copy().subsurface(
                 (self.BACKGROUND_LOC), (320, 640))
 
-    def _play(self):
+    def play(self):
         """Begin game and check for keyboard inputs."""
-        cover = pygame.Surface((384, 48))
+        cover = pg.Surface((384, 80))
         cover.fill((32, 32, 32))
-        skip_shadow = False
+        self.board.update_board(self.tetromino)
 
         while True:
             if self.board.top_out:
                 self.board.reset()
                 self.tetromino.reset()
-                self.background = pygame.image.load(self.background_img)
-
-            if self.board.update_board(self.tetromino):
-                self.get_new_background()
-                self.tetromino.new_shape()
-                skip_shadow = True
+                self.board.update_board(self.tetromino)
+                self.background = pg.image.load(self.background_img)
 
             if self.board.filled_rows.size != 0:
-                self.display.blit(pygame.transform.chop(self.background,
+                chop = pg.transform.chop(self.background,
                         (0, self.tile_size*np.min(self.board.filled_rows - 3),
-                         0, self.tile_size*self.board.filled_rows.size)),
-                        (self.BACKGROUND_LOC[0],
-                            self.BACKGROUND_LOC[1] +
+                         0, self.tile_size*self.board.filled_rows.size))
+                self.display.blit(chop,
+                        (self.BACKGROUND_LOC[0], self.BACKGROUND_LOC[1] +
                             self.tile_size*self.board.filled_rows.size))
                 self.get_new_background()
                 self.board.filled_rows = np.array([])
 
-            self.clock.tick(self.pre_settings.display.fps)
+            self.clock.tick(DisplaySettings.fps)
+
             self.display.fill((32, 32, 32))
             self.display.blit(self.background, self.BACKGROUND_LOC)
-            if not skip_shadow:
-                self.blit_shadow()
-            skip_shadow = False
+            self.blit_shadow()
             self.blit_tetromino()
             self.display.blit(cover, (self.LEFT, 0))
-            pygame.display.update()
+            pg.display.update()
 
-            for event in pygame.event.get():
+            for event in pg.event.get():
                 if event.type == self.MOVE_DOWN:
-                    self.tetromino.soft_drop()
+                    if self.board.soft_drop(self.tetromino):
+                        self.get_new_background()
 
-                if event.type == pygame.QUIT:
+                if event.type == pg.QUIT:
                     self.quit()
 
-                if event.type == pygame.KEYDOWN:
+                if event.type == pg.KEYDOWN:
 
-                    if event.key == pygame.K_DOWN:
-                        self.tetromino.soft_drop()
-                        pygame.time.set_timer(self.MOVE_DOWN,
-                                self.pre_settings.tetromino.speed)
+                    if event.key == pg.K_DOWN:
+                        if self.board.soft_drop(self.tetromino):
+                            self.get_new_background()
+                        pg.time.set_timer(self.MOVE_DOWN, TimerSettings.drop_interval)
 
-                    elif event.key == pygame.K_LEFT:
-                        self.tetromino.move_left()
+                    if event.key == pg.K_LEFT:
+                        self.board.move_left(self.tetromino)
 
-                    elif event.key == pygame.K_RIGHT:
-                        self.tetromino.move_right()
+                    elif event.key == pg.K_RIGHT:
+                        self.board.move_right(self.tetromino)
 
-                    if event.key == pygame.K_ESCAPE:
-                        self._pause()
+                    if event.key == pg.K_ESCAPE:
+                        self.pause()
 
-                    elif event.key == pygame.K_x:
-                        self.tetromino.hold()
+                    elif event.key == pg.K_x:
+                        self.board.hold(self.tetromino)
 
-                    elif event.key == pygame.K_n:
-                        self.tetromino.new_shape()
+                    elif event.key == pg.K_z:
+                        self.board.rotate_left(self.tetromino)
+                        pg.key.set_repeat(KeyboardSettings.delay, KeyboardSettings.interval)
 
-                    elif event.key == pygame.K_z:
-                        self.tetromino.rotate_left()
+                    elif event.key == pg.K_UP:
+                        self.board.rotate_right(self.tetromino)
 
-                    elif event.key == pygame.K_UP:
-                        self.tetromino.rotate_right()
-
-                    elif event.key == pygame.K_SPACE:
+                    elif event.key == pg.K_SPACE:
                         self.board.hard_drop(self.tetromino)
-                        self.board.update_board(self.tetromino)
                         self.display.blit(self.background, self.BACKGROUND_LOC)
                         self.blit_tetromino()
-                        self.tetromino.soft_drop()
+                        self.board.soft_drop(self.tetromino)
+                        self.get_new_background()
 
             if self.debug:
-                self._debug_print()
+                self.debug_print()
 
-        pygame.quit()
+        pg.quit()
 
-    def _pause(self):
+    def pause(self):
         """Pause gameplay."""
-        self.pause = True
-        while self.pause:
-            pygame.display.update()
-            self.clock.tick(self.pre_settings.display.fps)
+        self.paused = True
+        while self.paused:
+            pg.display.update()
+            self.clock.tick(DisplaySettings.fps)
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
                     self.quit()
 
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_q:
-                        self._quit()
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_q:
+                        self.quit()
 
-                    # if event.key == pygame.K_ESCAPE:
-                    #     self.pause = False
+                    if event.key == pg.K_ESCAPE:
+                        self.paused = False
 
             if self.debug:
-                self._debug_print()
+                self.debug_print()
 
 
-    def _quit(self):
+    def quit(self):
         """Quit the program."""
-        pygame.quit()
+        pg.quit()
         quit()
