@@ -254,7 +254,7 @@ class Tetromino():
         self.width = 10 + 6
 
         # Tetromino position
-        self.row = 0
+        self.row = 3
         self.col = int(self.width/2) - 2
 
         self.shape = list(SHAPES.keys())[random.randint(0, 6)]
@@ -267,7 +267,7 @@ class Tetromino():
         self.__init__()
 
     def copy_held(self, tetromino):
-        self.row = 0
+        self.row = 3
         self.col = int(self.width/2)-2
         self.shape = tetromino.shape
         self.rotation_index = tetromino.rotation_index
@@ -280,13 +280,7 @@ class Tetromino():
 
     def new_shape(self):
         """Randomly generate new shape."""
-        self.shape = list(SHAPES.keys())[random.randint(0, 6)]
-        self.tetromino = SHAPES[self.shape]
-        self.rotation_index = 0
-        self.holding = False
-        self.row = 0
-        self.col = int(self.width/2) - 2
-        self.color = self.COLORS[random.randint(0,5)]
+        self.__init__()
 
     def position(self):
         """Return the position of the tetromino as tuple."""
