@@ -16,8 +16,12 @@ class Game:
     BOTTOM = 80
     LEFT = 240
     RIGHT = 560
+    FONT_SIZE = 32
+
     BACKGROUND_LOC = (LEFT, TOP)
-    HELD_BACKGROUND_LOC = (LEFT - TILE_SIZE*6 - 8, TOP + TILE_SIZE*5)
+    BACKGROUND_BORDER_LOC = (LEFT - TILE_SIZE//8, TOP - TILE_SIZE//8)
+    HELD_BACKGROUND_LOC = (LEFT - TILE_SIZE*6 - TILE_SIZE//4, TOP + TILE_SIZE*5)
+    HELD_BACKGROUND_BORDER_LOC = (HELD_BACKGROUND_LOC[0] - TILE_SIZE//8, HELD_BACKGROUND_LOC[1] - TILE_SIZE//8)
     HELD_TET_LOC = {
         'I' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE/2, HELD_BACKGROUND_LOC[1] + TILE_SIZE/2),
         'O' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE/2, HELD_BACKGROUND_LOC[1] + TILE_SIZE),
@@ -27,23 +31,28 @@ class Game:
         'Z' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE, HELD_BACKGROUND_LOC[1] + TILE_SIZE),
         'S' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE, HELD_BACKGROUND_LOC[1] + TILE_SIZE),
     }
+    HELD_FONT_LOC = (HELD_BACKGROUND_LOC[0] + TILE_SIZE*1.1, HELD_BACKGROUND_LOC[1] - TILE_SIZE*1.5)
 
     def __init__(self):
+        pg.init()
+
         self.board = None
         self.tetromino = None
         self.debug = False
         self.paused = False
         self.display = None
 
-        self.tile_size = 32
-        self.top_boundary = 48
-        self.bottom_boundary = 752
-        self.left_boundary = 240
-        self.right_boundary = 592
-        self.background_loc = (240, 80)
+        # self.tile_size = 32
+        # self.top_boundary = 48
+        # self.bottom_boundary = 752
+        # self.left_boundary = 240
+        # self.right_boundary = 592
+        # self.background_loc = (240, 80)
 
         self.background_img = 'tetris/assets/background.png'
+        self.background_border_img = 'tetris/assets/background_border.png'
         self.held_background_img = 'tetris/assets/held_background.png'
+        self.held_background_border_img = 'tetris/assets/held_background_border.png'
         self.shadow_imgs = {
             'blue' : pg.image.load('tetris/assets/blue_shadow.png'),
             'red' : pg.image.load('tetris/assets/red_shadow.png'),
@@ -62,7 +71,14 @@ class Game:
         }
 
         self.background = pg.image.load(self.background_img)
+        self.background_border = pg.image.load(self.background_border_img)
         self.held_background = pg.image.load(self.held_background_img)
+        self.held_background_border = pg.image.load(self.held_background_border_img)
+        self.cover = pg.Surface((384, 80))
+        self.cover.fill((27, 27, 27))
+
+        self.font_name = pg.font.match_font('arial', 1)
+        self.held_font = pg.font.Font(self.font_name, self.FONT_SIZE).render('HELD', True, (255, 255, 255))
 
     def debug_print(self):
         """Print Tetris pieces and relevant information to console."""
@@ -90,9 +106,7 @@ class Game:
     def start(self):
         """Start the game."""
         # Init pg
-        pg.init()
         pg.display.set_caption('Tetris')
-        pg.mouse.set_visible(0)
         self.display = pg.display.set_mode((DisplaySettings.width, DisplaySettings.height))
 
         # User events
@@ -136,10 +150,22 @@ class Game:
         self.background = self.display.copy().subsurface(
                 (self.BACKGROUND_LOC), (320, 640))
 
+    def render_frame(self):
+        self.display.fill((27, 27, 27))
+        self.display.blit(self.background, self.BACKGROUND_LOC)
+        self.blit_shadow()
+        self.blit_tetromino()
+        self.display.blit(self.held_background, self.HELD_BACKGROUND_LOC)
+        self.blit_held_tetromino()
+        self.display.blit(self.cover, (self.LEFT, 0))
+        self.display.blit(self.background_border, self.BACKGROUND_BORDER_LOC)
+        self.display.blit(self.held_background_border, self.HELD_BACKGROUND_BORDER_LOC)
+        self.display.blit(self.held_background_border, self.HELD_BACKGROUND_BORDER_LOC)
+        self.display.blit(self.held_font, self.HELD_FONT_LOC)
+
+
     def play(self):
         """Begin game and check for keyboard inputs."""
-        cover = pg.Surface((384, 80))
-        cover.fill((32, 32, 32))
         self.board.update_board(self.tetromino)
 
         while True:
@@ -151,23 +177,16 @@ class Game:
 
             if self.board.filled_rows.size != 0:
                 chop = pg.transform.chop(self.background,
-                        (0, self.tile_size*np.min(self.board.filled_rows - 3),
-                         0, self.tile_size*self.board.filled_rows.size))
+                        (0, self.TILE_SIZE*np.min(self.board.filled_rows - 3),
+                         0, self.TILE_SIZE*self.board.filled_rows.size))
                 self.display.blit(chop,
                         (self.BACKGROUND_LOC[0], self.BACKGROUND_LOC[1] +
-                            self.tile_size*self.board.filled_rows.size))
+                            self.TILE_SIZE*self.board.filled_rows.size))
                 self.get_new_background()
                 self.board.filled_rows = np.array([])
 
             self.clock.tick(DisplaySettings.fps)
-
-            self.display.fill((32, 32, 32))
-            self.display.blit(self.background, self.BACKGROUND_LOC)
-            self.blit_shadow()
-            self.blit_tetromino()
-            self.display.blit(self.held_background, self.HELD_BACKGROUND_LOC)
-            self.blit_held_tetromino()
-            self.display.blit(cover, (self.LEFT, 0))
+            self.render_frame()
             pg.display.update()
 
             for event in pg.event.get():
