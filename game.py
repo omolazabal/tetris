@@ -20,18 +20,19 @@ class Game:
 
     BACKGROUND_LOC = (LEFT, TOP)
     BACKGROUND_BORDER_LOC = (LEFT - TILE_SIZE//8, TOP - TILE_SIZE//8)
-    HELD_BACKGROUND_LOC = (LEFT - TILE_SIZE*6 - TILE_SIZE//4, TOP + TILE_SIZE*5)
-    HELD_BACKGROUND_BORDER_LOC = (HELD_BACKGROUND_LOC[0] - TILE_SIZE//8, HELD_BACKGROUND_LOC[1] - TILE_SIZE//8)
-    HELD_TET_LOC = {
-        'I' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE/2, HELD_BACKGROUND_LOC[1] + TILE_SIZE/2),
-        'O' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE/2, HELD_BACKGROUND_LOC[1] + TILE_SIZE),
-        'L' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE, HELD_BACKGROUND_LOC[1] + TILE_SIZE),
-        'J' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE, HELD_BACKGROUND_LOC[1] + TILE_SIZE),
-        'T' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE, HELD_BACKGROUND_LOC[1] + TILE_SIZE),
-        'Z' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE, HELD_BACKGROUND_LOC[1] + TILE_SIZE),
-        'S' : (HELD_BACKGROUND_LOC[0] + TILE_SIZE, HELD_BACKGROUND_LOC[1] + TILE_SIZE),
+
+    SIDE_BACKGROUND_LOC = (LEFT - TILE_SIZE*6 - TILE_SIZE//4, TOP + TILE_SIZE*4)
+    SIDE_BACKGROUND_BORDER_LOC = (SIDE_BACKGROUND_LOC[0] - TILE_SIZE//8, SIDE_BACKGROUND_LOC[1] - TILE_SIZE//8)
+    SIDE_TET_LOC = {
+        'I' : (SIDE_BACKGROUND_LOC[0] + TILE_SIZE/2, SIDE_BACKGROUND_LOC[1] + TILE_SIZE/2),
+        'O' : (SIDE_BACKGROUND_LOC[0] + TILE_SIZE/2, SIDE_BACKGROUND_LOC[1] + TILE_SIZE),
+        'L' : (SIDE_BACKGROUND_LOC[0] + TILE_SIZE, SIDE_BACKGROUND_LOC[1] + TILE_SIZE),
+        'J' : (SIDE_BACKGROUND_LOC[0] + TILE_SIZE, SIDE_BACKGROUND_LOC[1] + TILE_SIZE),
+        'T' : (SIDE_BACKGROUND_LOC[0] + TILE_SIZE, SIDE_BACKGROUND_LOC[1] + TILE_SIZE),
+        'Z' : (SIDE_BACKGROUND_LOC[0] + TILE_SIZE, SIDE_BACKGROUND_LOC[1] + TILE_SIZE),
+        'S' : (SIDE_BACKGROUND_LOC[0] + TILE_SIZE, SIDE_BACKGROUND_LOC[1] + TILE_SIZE),
     }
-    HELD_FONT_LOC = (HELD_BACKGROUND_LOC[0] + TILE_SIZE*1.1, HELD_BACKGROUND_LOC[1] - TILE_SIZE*1.5)
+    SIDE_FONT_LOC = (SIDE_BACKGROUND_LOC[0] + TILE_SIZE*1.1, SIDE_BACKGROUND_LOC[1] - TILE_SIZE*1.5)
 
     def __init__(self):
         pg.init()
@@ -42,17 +43,10 @@ class Game:
         self.paused = False
         self.display = None
 
-        # self.tile_size = 32
-        # self.top_boundary = 48
-        # self.bottom_boundary = 752
-        # self.left_boundary = 240
-        # self.right_boundary = 592
-        # self.background_loc = (240, 80)
-
         self.background_img = 'tetris/assets/background.png'
         self.background_border_img = 'tetris/assets/background_border.png'
-        self.held_background_img = 'tetris/assets/held_background.png'
-        self.held_background_border_img = 'tetris/assets/held_background_border.png'
+        self.side_background_img = 'tetris/assets/side_background.png'
+        self.side_background_border_img = 'tetris/assets/side_background_border.png'
         self.shadow_imgs = {
             'blue' : pg.image.load('tetris/assets/blue_shadow.png'),
             'red' : pg.image.load('tetris/assets/red_shadow.png'),
@@ -72,13 +66,14 @@ class Game:
 
         self.background = pg.image.load(self.background_img)
         self.background_border = pg.image.load(self.background_border_img)
-        self.held_background = pg.image.load(self.held_background_img)
-        self.held_background_border = pg.image.load(self.held_background_border_img)
+        self.side_background = pg.image.load(self.side_background_img)
+        self.side_background_border = pg.image.load(self.side_background_border_img)
         self.cover = pg.Surface((384, 80))
         self.cover.fill((27, 27, 27))
 
         self.font_name = pg.font.match_font('arial', 1)
         self.held_font = pg.font.Font(self.font_name, self.FONT_SIZE).render('HELD', True, (255, 255, 255))
+        self.next_font = pg.font.Font(self.font_name, self.FONT_SIZE).render('NEXT', True, (255, 255, 255))
 
     def debug_print(self):
         """Print Tetris pieces and relevant information to console."""
@@ -136,8 +131,15 @@ class Game:
             coords = self.board.held_tetromino.block_coordinates()
             for x, y in zip(coords[1], coords[0]):
                 self.display.blit(self.tetromino_imgs[self.board.held_tetromino.color],
-                        (self.HELD_TET_LOC[self.board.held_tetromino.shape][0] + (x - self.board.held_tetromino.col)*32,
-                        self.HELD_TET_LOC[self.board.held_tetromino.shape][1] + (y - 3)*32))
+                        (self.SIDE_TET_LOC[self.board.held_tetromino.shape][0] + (x - self.board.held_tetromino.col)*32,
+                        self.SIDE_TET_LOC[self.board.held_tetromino.shape][1] + (y - 3)*32 + self.TILE_SIZE*8))
+
+    def blit_next_tetromino(self):
+        coords = self.tetromino.next_block_coordinates()
+        for x, y in zip(coords[1], coords[0]):
+            self.display.blit(self.tetromino_imgs[self.tetromino.next_color],
+                    (self.SIDE_TET_LOC[self.tetromino.next_shape][0] + x*32,
+                    self.SIDE_TET_LOC[self.tetromino.next_shape][1] + y*32))
 
     def blit_tetromino(self):
         coords = self.tetromino.block_coordinates()
@@ -155,13 +157,16 @@ class Game:
         self.display.blit(self.background, self.BACKGROUND_LOC)
         self.blit_shadow()
         self.blit_tetromino()
-        self.display.blit(self.held_background, self.HELD_BACKGROUND_LOC)
+        self.display.blit(self.side_background, (self.SIDE_BACKGROUND_LOC[0], self.SIDE_BACKGROUND_LOC[1] + self.TILE_SIZE*8))
+        self.display.blit(self.side_background, self.SIDE_BACKGROUND_LOC)
         self.blit_held_tetromino()
+        self.blit_next_tetromino()
         self.display.blit(self.cover, (self.LEFT, 0))
         self.display.blit(self.background_border, self.BACKGROUND_BORDER_LOC)
-        self.display.blit(self.held_background_border, self.HELD_BACKGROUND_BORDER_LOC)
-        self.display.blit(self.held_background_border, self.HELD_BACKGROUND_BORDER_LOC)
-        self.display.blit(self.held_font, self.HELD_FONT_LOC)
+        self.display.blit(self.side_background_border, (self.SIDE_BACKGROUND_BORDER_LOC[0], self.SIDE_BACKGROUND_BORDER_LOC[1] + self.TILE_SIZE*8))
+        self.display.blit(self.side_background_border, self.SIDE_BACKGROUND_BORDER_LOC)
+        self.display.blit(self.held_font, (self.SIDE_FONT_LOC[0], self.SIDE_FONT_LOC[1] + self.TILE_SIZE*8))
+        self.display.blit(self.next_font, self.SIDE_FONT_LOC)
 
 
     def play(self):

@@ -262,6 +262,10 @@ class Tetromino():
         self.rotation_index = 0
         self.color = self.COLORS[random.randint(0,5)]
 
+        self.next_shape = list(SHAPES.keys())[random.randint(0, 6)]
+        self.next_tetromino = SHAPES[self.next_shape]
+        self.next_color = self.COLORS[random.randint(0,5)]
+
     def reset(self):
         """Reset the tetromino."""
         self.__init__()
@@ -280,11 +284,30 @@ class Tetromino():
 
     def new_shape(self):
         """Randomly generate new shape."""
-        self.__init__()
+        self.row = 3
+        self.col = self.width//2 - 2
+        self.shape = self.next_shape
+        self.tetromino = copy.deepcopy(self.next_tetromino)
+        self.color = self.next_color
+        self.rotation_index = 0
+
+        self.next_shape = list(SHAPES.keys())[random.randint(0, 6)]
+        self.next_tetromino = SHAPES[self.next_shape]
+        self.next_color = self.COLORS[random.randint(0,5)]
 
     def position(self):
         """Return the position of the tetromino as tuple."""
         return (self.row, self.col)
+
+    def next_block_coordinates(self):
+        """Return the coordinates for every block in the tetromino matrix.
+
+        Returns a tuple of a pair of np arrays. The first array contains the
+        rows and the second array contains columns.
+        """
+        rows = np.where(self.next_tetromino[0] == 1)[0]
+        cols = np.where(self.next_tetromino[0] == 1)[1]
+        return (rows, cols)
 
     def block_coordinates(self):
         """Return the coordinates for every block in the tetromino matrix.
