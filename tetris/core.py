@@ -9,9 +9,7 @@ class Board:
     """Class for the board in Tetris."""
 
     def __init__(self):
-        """Set the settings for the Tetris board. This includes the width,
-        height, and initial cell values.
-        """
+        """Set the settings for the Tetris board."""
         self.width = 10 + 6   # Accommodate for sides.
         self.height = 20 + 4  # Accommodate for base and spawn.
         self.left_boundary = 3
@@ -28,7 +26,6 @@ class Board:
 
         self.holding = False
         self.held_tetromino = None
-
 
     def reset(self):
         """Reset the board."""
@@ -76,8 +73,7 @@ class Board:
                     while self.board[self.height - self.fill_height[0, i] - 1, i] == 0:
                         self.fill_height[0, i] -= 1
 
-
-    def collision(self, tetromino):
+    def _collision(self, tetromino):
         """Check to see if tetromino has collided with a placed tetromino."""
         p = tetromino.block_coordinates()
         if self.board[p[0], p[1]].any() == 1 or self.board[p[0], p[1]].any() == 9:
@@ -94,7 +90,7 @@ class Board:
             self.board[p[0], p[1]] = 0
 
         # If the new tetromino has a position that is a collision, place it.
-        if self.collision(new_tetromino):
+        if self._collision(new_tetromino):
             if self.current_tetromino is None:
                 self.top_out = True
                 return True
@@ -113,7 +109,7 @@ class Board:
 
         # Find shadow for new tetromino.
         self.shadow = copy.deepcopy(new_tetromino)
-        while not self.collision(self.shadow):
+        while not self._collision(self.shadow):
             self.shadow.row += 1
         self.shadow.row -= 1
 
@@ -141,9 +137,6 @@ class Board:
         self.current_tetromino = None
         self.holding = False
 
-        # if np.max(self.fill_height) > 19:
-        #     self.top_out = True
-
     def hold(self, tetromino):
         """Hold the tetromino."""
         if not self.holding:
@@ -160,11 +153,7 @@ class Board:
 
 
     def rotate_right(self, tetromino):
-        """Rotate the tetromino shape right.
-
-        Rotation is done by cycling through the rotation_index shapes obtained
-        from shapes.py
-        """
+        """Rotate the tetromino shape right."""
         tetromino.rotation_index = (tetromino.rotation_index + 1)%4
         p = tetromino.block_coordinates()
 
@@ -177,11 +166,7 @@ class Board:
         self.update_board(tetromino)
 
     def rotate_left(self, tetromino):
-        """Rotate the tetromino shape left.
-
-        Rotation is done by cycling through the rotation_index shapes obtained
-        from shapes.py
-        """
+        """Rotate the tetromino shape left."""
         tetromino.rotation_index = (tetromino.rotation_index - 1)%4
         p = tetromino.block_coordinates()
 
@@ -194,24 +179,18 @@ class Board:
         self.update_board(tetromino)
 
     def move_right(self, tetromino):
-        """Move the tetromino to the right. Before rotation is done, ensure that
-        the position is valid.
-        """
+        """Move the tetromino to the right."""
         p = tetromino.block_coordinates()
         if np.max(p[1]) >= self.right_boundary:
             return
-
         tetromino.col += 1
         self.update_board(tetromino)
 
     def move_left(self, tetromino):
-        """Move the tetromino to the left. Before rotation is done, ensure that
-        the position is valid.
-        """
+        """Move the tetromino to the left."""
         p = tetromino.block_coordinates()
         if np.min(p[1]) <= self.left_boundary:
             return
-
         tetromino.col -= 1
         self.update_board(tetromino)
 
@@ -224,7 +203,7 @@ class Board:
         """Instantly drop the tetromino to the bottom of the board."""
         p = tetromino.block_coordinates()
         self.board[p[0], p[1]] = 0
-        while not self.collision(tetromino):
+        while not self._collision(tetromino):
             tetromino.row += 1
         tetromino.row -= 1
         self.update_board(tetromino)
@@ -304,7 +283,8 @@ class Tetromino():
         return (rows, cols)
 
     def block_coordinates(self):
-        """Return the coordinates for every block in the tetromino matrix.
+        """Return the coordinates for every block in the tetromino matrix
+        relavtive to the tetris board.
 
         Returns a tuple of a pair of np arrays. The first array contains the
         rows and the second array contains columns.
