@@ -2,7 +2,7 @@
 """All available settings for Tetris game"""
 
 class KeyboardSettings:
-    delay = 100
+    delay = 150
     interval = 30
 
 class DisplaySettings:
