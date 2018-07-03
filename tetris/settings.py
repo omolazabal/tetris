@@ -5,15 +5,15 @@ class KeyboardSettings:
     delay = 150
     interval = 30
 
+class TetrominoSettings:
+    tile_size = 16
+
 class DisplaySettings:
-    width = 800
-    height = 800
+    width = TetrominoSettings.tile_size*25
+    height = TetrominoSettings.tile_size*25
     fps = 60
 
 class BoardSettings:
-    pass
-
-class TetrominoSettings:
     pass
 
 class TimerSettings:
