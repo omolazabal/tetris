@@ -80,7 +80,24 @@ class Board:
             return True
         return False
 
-    def update_board(self, new_tetromino, drop=False):
+    def start_game(self, new_tetromino):
+        """Begin the game with a new tetromino"""
+
+        # Find shadow for new tetromino.
+        self.shadow = copy.deepcopy(new_tetromino)
+        while not self._collision(self.shadow):
+            self.shadow.row += 1
+        self.shadow.row -= 1
+
+        # Write the new tetromino with its new position onto the board.
+        p = new_tetromino.block_coordinates()
+        self.board[p[0], p[1]] = 1
+
+        # Save the new tetromino as the current one.
+        self.current_tetromino = copy.deepcopy(new_tetromino)
+
+
+    def _update_board(self, new_tetromino, drop=False):
         """Update the state of the board and the tetromino's position. Return
         true if the tetromino is placed, false otherwise."""
 
@@ -95,10 +112,10 @@ class Board:
                 self.top_out = True
                 return True
             if drop:
-                self.place_tetromino()
+                self._place_tetromino()
                 self._line_clear_check()
                 new_tetromino.new_shape()
-                self.update_board(new_tetromino)
+                self._update_board(new_tetromino)
                 return True
             else:
                 new_tetromino.rotation_index = self.current_tetromino.rotation_index
@@ -122,7 +139,7 @@ class Board:
 
         return False
 
-    def place_tetromino(self):
+    def _place_tetromino(self):
         """Place the tetromino onto the board."""
 
         # Integrate tetromino into board & update heights.
@@ -149,7 +166,7 @@ class Board:
                 self.held_tetromino.copy_held(tetromino)
                 tetromino.copy_held(temp_tet)
             self.holding = True
-            self.update_board(tetromino)
+            self._update_board(tetromino)
 
 
     def rotate_right(self, tetromino):
@@ -163,7 +180,7 @@ class Board:
             tetromino.col -= np.max(p[1]) - self.right_boundary
         if np.min(p[1]) <= self.left_boundary:
             tetromino.col += self.left_boundary - np.min(p[1])
-        self.update_board(tetromino)
+        self._update_board(tetromino)
 
     def rotate_left(self, tetromino):
         """Rotate the tetromino shape left."""
@@ -176,7 +193,7 @@ class Board:
             tetromino.col -= np.max(p[1]) - self.right_boundary
         if np.min(p[1]) <= self.left_boundary:
             tetromino.col += self.left_boundary - np.min(p[1])
-        self.update_board(tetromino)
+        self._update_board(tetromino)
 
     def move_right(self, tetromino):
         """Move the tetromino to the right."""
@@ -184,7 +201,7 @@ class Board:
         if np.max(p[1]) >= self.right_boundary:
             return
         tetromino.col += 1
-        self.update_board(tetromino)
+        self._update_board(tetromino)
 
     def move_left(self, tetromino):
         """Move the tetromino to the left."""
@@ -192,12 +209,12 @@ class Board:
         if np.min(p[1]) <= self.left_boundary:
             return
         tetromino.col -= 1
-        self.update_board(tetromino)
+        self._update_board(tetromino)
 
     def soft_drop(self, tetromino):
         """Move the tetromino downwards."""
         tetromino.row += 1
-        return self.update_board(tetromino, True)
+        return self._update_board(tetromino, True)
 
     def hard_drop(self, tetromino):
         """Instantly drop the tetromino to the bottom of the board."""
@@ -206,12 +223,12 @@ class Board:
         while not self._collision(tetromino):
             tetromino.row += 1
         tetromino.row -= 1
-        self.update_board(tetromino)
+        self._update_board(tetromino)
 
     def up(self, tetromino):
         """Move the tetromino upwards."""
         tetromino.row -= 1
-        self.update_board(tetromino)
+        self._update_board(tetromino)
 
 
 class Tetromino():

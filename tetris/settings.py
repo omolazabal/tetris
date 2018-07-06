@@ -9,7 +9,7 @@ class TetrominoSettings:
     tile_size = 16
 
 class DisplaySettings:
-    width = TetrominoSettings.tile_size*25
+    width = TetrominoSettings.tile_size*27
     height = TetrominoSettings.tile_size*25
     fps = 60
 

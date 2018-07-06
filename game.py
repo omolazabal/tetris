@@ -61,31 +61,32 @@ class Game:
         self.paused = False
         self.display = None
         self.speed = TimerSettings.drop_interval
-        self.background_img = 'tetris/assets/' + str(self.TILE_SIZE) + '/background.png'
-        self.background_border_img = 'tetris/assets/' + str(self.TILE_SIZE) + '/background_border.png'
-        self.side_background_img = 'tetris/assets/' + str(self.TILE_SIZE) + '/side_background.png'
-        self.side_background_border_img = 'tetris/assets/' + str(self.TILE_SIZE) + '/side_background_border.png'
+        self.background_img = 'assets/' + str(self.TILE_SIZE) + '/background.png'
+        self.background_border_img = 'assets/' + str(self.TILE_SIZE) + '/background_border.png'
+        self.side_background_img = 'assets/' + str(self.TILE_SIZE) + '/side_background.png'
+        self.side_background_border_img = 'assets/' + str(self.TILE_SIZE) + '/side_background_border.png'
 
         self.scores = {str(datetime.datetime.now()):0}
         if os.path.getsize('scores') > 0:  
             with open ('scores', 'rb') as fp:
                 self.scores = pickle.load(fp)
+        self.high_score = max(self.scores.values())
 
         self.shadow_imgs = {
-            'blue' : pg.image.load('tetris/assets/' + str(self.TILE_SIZE) + '/blue_shadow.png'),
-            'red' : pg.image.load('tetris/assets/' + str(self.TILE_SIZE) + '/red_shadow.png'),
-            'yellow' : pg.image.load('tetris/assets/' + str(self.TILE_SIZE) + '/yellow_shadow.png'),
-            'orange' : pg.image.load('tetris/assets/' + str(self.TILE_SIZE) + '/orange_shadow.png'),
-            'cyan' : pg.image.load('tetris/assets/' + str(self.TILE_SIZE) + '/cyan_shadow.png'),
-            'purple' : pg.image.load('tetris/assets/' + str(self.TILE_SIZE) + '/purple_shadow.png'),
+            'blue' : pg.image.load('assets/' + str(self.TILE_SIZE) + '/blue_shadow.png'),
+            'red' : pg.image.load('assets/' + str(self.TILE_SIZE) + '/red_shadow.png'),
+            'yellow' : pg.image.load('assets/' + str(self.TILE_SIZE) + '/yellow_shadow.png'),
+            'orange' : pg.image.load('assets/' + str(self.TILE_SIZE) + '/orange_shadow.png'),
+            'cyan' : pg.image.load('assets/' + str(self.TILE_SIZE) + '/cyan_shadow.png'),
+            'purple' : pg.image.load('assets/' + str(self.TILE_SIZE) + '/purple_shadow.png'),
         }
         self.tetromino_imgs = {
-            'blue' : pg.image.load('tetris/assets/' + str(self.TILE_SIZE) + '/blue_tile.png'),
-            'red' : pg.image.load('tetris/assets/' + str(self.TILE_SIZE) + '/red_tile.png'),
-            'yellow' : pg.image.load('tetris/assets/' + str(self.TILE_SIZE) + '/yellow_tile.png'),
-            'orange' : pg.image.load('tetris/assets/' + str(self.TILE_SIZE) + '/orange_tile.png'),
-            'cyan' : pg.image.load('tetris/assets/' + str(self.TILE_SIZE) + '/cyan_tile.png'),
-            'purple' : pg.image.load('tetris/assets/' + str(self.TILE_SIZE) + '/purple_tile.png'),
+            'blue' : pg.image.load('assets/' + str(self.TILE_SIZE) + '/blue_tile.png'),
+            'red' : pg.image.load('assets/' + str(self.TILE_SIZE) + '/red_tile.png'),
+            'yellow' : pg.image.load('assets/' + str(self.TILE_SIZE) + '/yellow_tile.png'),
+            'orange' : pg.image.load('assets/' + str(self.TILE_SIZE) + '/orange_tile.png'),
+            'cyan' : pg.image.load('assets/' + str(self.TILE_SIZE) + '/cyan_tile.png'),
+            'purple' : pg.image.load('assets/' + str(self.TILE_SIZE) + '/purple_tile.png'),
         }
 
         self.background = pg.image.load(self.background_img)
@@ -162,10 +163,10 @@ class Game:
     def get_new_background(self):
         self.background = self.display.copy().subsurface((self.BACKGROUND_LOC), (self.TILE_SIZE*10, self.TILE_SIZE*20))
 
-    def blit_text(self):
+    def render_text(self):
         score = pg.font.Font(self.font_name, self.FONT_SIZE).render(str(self.score.score), True, self.WHITE)
         level = pg.font.Font(self.font_name, self.FONT_SIZE).render(str(self.score.level), True, self.WHITE)
-        high_score = pg.font.Font(self.font_name, self.FONT_SIZE).render(str(max(self.scores.values())), True, self.WHITE)
+        high_score = pg.font.Font(self.font_name, self.FONT_SIZE).render(str(max(self.high_score, self.score.score)), True, self.WHITE)
         self.display.blit(self.held_font, self.HELD_FONT_LOC)
         self.display.blit(self.next_font, self.SIDE_FONT_LOC)
         self.display.blit(self.level_font, self.LEVEL_FONT_LOC)
@@ -188,7 +189,7 @@ class Game:
         self.display.blit(self.background_border, self.BACKGROUND_BORDER_LOC)
         self.display.blit(self.side_background_border, (self.SIDE_BACKGROUND_BORDER_LOC[0], self.SIDE_BACKGROUND_BORDER_LOC[1] + self.TILE_SIZE*8))
         self.display.blit(self.side_background_border, self.SIDE_BACKGROUND_BORDER_LOC)
-        self.blit_text()
+        self.render_text()
 
     def clear_line(self):
         chop = pg.transform.chop(self.background,
@@ -204,13 +205,14 @@ class Game:
         self.score.reset()
         self.board.reset()
         self.tetromino.reset()
-        self.board.update_board(self.tetromino)
+        self.board.start_game(self.tetromino)
         self.background = pg.image.load(self.background_img)
 
 
     def play(self):
         """Begin game and check for keyboard inputs."""
-        self.board.update_board(self.tetromino)
+        self.board.start_game(self.tetromino)
+        self.render_text()
 
         while True:
             if self.board.top_out:
@@ -221,6 +223,7 @@ class Game:
                     self.speed -= 75
                     pg.time.set_timer(self.MOVE_DOWN, self.speed)
                 self.clear_line()
+                self.render_text()
 
             self.clock.tick(DisplaySettings.fps)
             self.render_frame()
