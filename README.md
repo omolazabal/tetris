@@ -1,6 +1,3 @@
-# Work in progress
-## Super early stages
-
 One day I randomly felt the need to make tetris. Now here I am. Not sure what I got myself into.
 
 Created using:
