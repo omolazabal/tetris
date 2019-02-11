@@ -6,7 +6,7 @@ class KeyboardSettings:
     interval = 30
 
 class TetrominoSettings:
-    tile_size = 16
+    tile_size = 32
 
 class DisplaySettings:
     width = TetrominoSettings.tile_size*27
